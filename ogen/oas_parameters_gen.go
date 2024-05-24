@@ -16,13 +16,12 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-// GetTaskByIdParams is parameters of getTaskById operation.
-type GetTaskByIdParams struct {
-	// ID of task to return.
+// DeleteTasksTaskIdParams is parameters of delete-tasks-taskId operation.
+type DeleteTasksTaskIdParams struct {
 	TaskId uuid.UUID
 }
 
-func unpackGetTaskByIdParams(packed middleware.Parameters) (params GetTaskByIdParams) {
+func unpackDeleteTasksTaskIdParams(packed middleware.Parameters) (params DeleteTasksTaskIdParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "taskId",
@@ -33,7 +32,7 @@ func unpackGetTaskByIdParams(packed middleware.Parameters) (params GetTaskByIdPa
 	return params
 }
 
-func decodeGetTaskByIdParams(args [1]string, argsEscaped bool, r *http.Request) (params GetTaskByIdParams, _ error) {
+func decodeDeleteTasksTaskIdParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteTasksTaskIdParams, _ error) {
 	// Decode path: taskId.
 	if err := func() error {
 		param := args[0]
@@ -82,19 +81,12 @@ func decodeGetTaskByIdParams(args [1]string, argsEscaped bool, r *http.Request) 
 	return params, nil
 }
 
-// UpdateTaskParams is parameters of updateTask operation.
-type UpdateTaskParams struct {
-	// ID of task that needs to be updated.
+// GetTasksTaskIdParams is parameters of get-tasks-taskId operation.
+type GetTasksTaskIdParams struct {
 	TaskId uuid.UUID
-	// Site URL of task that needs to be updated.
-	SiteURL OptString
-	// Condition of task that needs to be updated.
-	Condition OptString
-	// Duration day of task that needs to be updated.
-	DurationDay OptInt32
 }
 
-func unpackUpdateTaskParams(packed middleware.Parameters) (params UpdateTaskParams) {
+func unpackGetTasksTaskIdParams(packed middleware.Parameters) (params GetTasksTaskIdParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "taskId",
@@ -102,38 +94,10 @@ func unpackUpdateTaskParams(packed middleware.Parameters) (params UpdateTaskPara
 		}
 		params.TaskId = packed[key].(uuid.UUID)
 	}
-	{
-		key := middleware.ParameterKey{
-			Name: "site_url",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.SiteURL = v.(OptString)
-		}
-	}
-	{
-		key := middleware.ParameterKey{
-			Name: "condition",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.Condition = v.(OptString)
-		}
-	}
-	{
-		key := middleware.ParameterKey{
-			Name: "duration_day",
-			In:   "query",
-		}
-		if v, ok := packed[key]; ok {
-			params.DurationDay = v.(OptInt32)
-		}
-	}
 	return params
 }
 
-func decodeUpdateTaskParams(args [1]string, argsEscaped bool, r *http.Request) (params UpdateTaskParams, _ error) {
-	q := uri.NewQueryDecoder(r.URL.Query())
+func decodeGetTasksTaskIdParams(args [1]string, argsEscaped bool, r *http.Request) (params GetTasksTaskIdParams, _ error) {
 	// Decode path: taskId.
 	if err := func() error {
 		param := args[0]
@@ -176,129 +140,6 @@ func decodeUpdateTaskParams(args [1]string, argsEscaped bool, r *http.Request) (
 		return params, &ogenerrors.DecodeParamError{
 			Name: "taskId",
 			In:   "path",
-			Err:  err,
-		}
-	}
-	// Decode query: site_url.
-	if err := func() error {
-		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "site_url",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.HasParam(cfg); err == nil {
-			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotSiteURLVal string
-				if err := func() error {
-					val, err := d.DecodeValue()
-					if err != nil {
-						return err
-					}
-
-					c, err := conv.ToString(val)
-					if err != nil {
-						return err
-					}
-
-					paramsDotSiteURLVal = c
-					return nil
-				}(); err != nil {
-					return err
-				}
-				params.SiteURL.SetTo(paramsDotSiteURLVal)
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "site_url",
-			In:   "query",
-			Err:  err,
-		}
-	}
-	// Decode query: condition.
-	if err := func() error {
-		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "condition",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.HasParam(cfg); err == nil {
-			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotConditionVal string
-				if err := func() error {
-					val, err := d.DecodeValue()
-					if err != nil {
-						return err
-					}
-
-					c, err := conv.ToString(val)
-					if err != nil {
-						return err
-					}
-
-					paramsDotConditionVal = c
-					return nil
-				}(); err != nil {
-					return err
-				}
-				params.Condition.SetTo(paramsDotConditionVal)
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "condition",
-			In:   "query",
-			Err:  err,
-		}
-	}
-	// Decode query: duration_day.
-	if err := func() error {
-		cfg := uri.QueryParameterDecodingConfig{
-			Name:    "duration_day",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.HasParam(cfg); err == nil {
-			if err := q.DecodeParam(cfg, func(d uri.Decoder) error {
-				var paramsDotDurationDayVal int32
-				if err := func() error {
-					val, err := d.DecodeValue()
-					if err != nil {
-						return err
-					}
-
-					c, err := conv.ToInt32(val)
-					if err != nil {
-						return err
-					}
-
-					paramsDotDurationDayVal = c
-					return nil
-				}(); err != nil {
-					return err
-				}
-				params.DurationDay.SetTo(paramsDotDurationDayVal)
-				return nil
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
-	}(); err != nil {
-		return params, &ogenerrors.DecodeParamError{
-			Name: "duration_day",
-			In:   "query",
 			Err:  err,
 		}
 	}

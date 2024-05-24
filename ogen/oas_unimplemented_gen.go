@@ -13,29 +13,38 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
-// AddTask implements addTask operation.
+// DeleteTasksTaskId implements delete-tasks-taskId operation.
 //
-// Add a new task.
+// Your DELETE endpoint.
 //
-// POST /tasks
-func (UnimplementedHandler) AddTask(ctx context.Context, req *Task) (r *Task, _ error) {
+// DELETE /tasks/{taskId}
+func (UnimplementedHandler) DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error {
+	return ht.ErrNotImplemented
+}
+
+// GetTasks implements get-tasks operation.
+//
+// Your GET endpoint.
+//
+// GET /tasks
+func (UnimplementedHandler) GetTasks(ctx context.Context) (r []Task, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// GetTaskById implements getTaskById operation.
+// GetTasksTaskId implements get-tasks-taskId operation.
 //
-// Returns a single task.
+// Your GET endpoint.
 //
 // GET /tasks/{taskId}
-func (UnimplementedHandler) GetTaskById(ctx context.Context, params GetTaskByIdParams) (r GetTaskByIdRes, _ error) {
+func (UnimplementedHandler) GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (r GetTasksTaskIdRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 
-// UpdateTask implements updateTask operation.
+// PostTasks implements post-tasks operation.
 //
-// Updates a task.
+// Your POST endpoint.
 //
-// POST /tasks/{taskId}
-func (UnimplementedHandler) UpdateTask(ctx context.Context, params UpdateTaskParams) error {
-	return ht.ErrNotImplemented
+// POST /tasks
+func (UnimplementedHandler) PostTasks(ctx context.Context, req OptTask) (r *Task, _ error) {
+	return r, ht.ErrNotImplemented
 }

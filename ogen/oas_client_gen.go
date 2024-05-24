@@ -23,24 +23,30 @@ import (
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// AddTask invokes addTask operation.
+	// DeleteTasksTaskId invokes delete-tasks-taskId operation.
 	//
-	// Add a new task.
+	// Your DELETE endpoint.
 	//
-	// POST /tasks
-	AddTask(ctx context.Context, request *Task) (*Task, error)
-	// GetTaskById invokes getTaskById operation.
+	// DELETE /tasks/{taskId}
+	DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error
+	// GetTasks invokes get-tasks operation.
 	//
-	// Returns a single task.
+	// Your GET endpoint.
+	//
+	// GET /tasks
+	GetTasks(ctx context.Context) ([]Task, error)
+	// GetTasksTaskId invokes get-tasks-taskId operation.
+	//
+	// Your GET endpoint.
 	//
 	// GET /tasks/{taskId}
-	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
-	// UpdateTask invokes updateTask operation.
+	GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error)
+	// PostTasks invokes post-tasks operation.
 	//
-	// Updates a task.
+	// Your POST endpoint.
 	//
-	// POST /tasks/{taskId}
-	UpdateTask(ctx context.Context, params UpdateTaskParams) error
+	// POST /tasks
+	PostTasks(ctx context.Context, request OptTask) (*Task, error)
 }
 
 // Client implements OAS client.
@@ -91,20 +97,110 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// AddTask invokes addTask operation.
+// DeleteTasksTaskId invokes delete-tasks-taskId operation.
 //
-// Add a new task.
+// Your DELETE endpoint.
 //
-// POST /tasks
-func (c *Client) AddTask(ctx context.Context, request *Task) (*Task, error) {
-	res, err := c.sendAddTask(ctx, request)
+// DELETE /tasks/{taskId}
+func (c *Client) DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error {
+	_, err := c.sendDeleteTasksTaskId(ctx, params)
+	return err
+}
+
+func (c *Client) sendDeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) (res *DeleteTasksTaskIdOK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("delete-tasks-taskId"),
+		semconv.HTTPMethodKey.String("DELETE"),
+		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteTasksTaskId",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/tasks/"
+	{
+		// Encode "taskId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "taskId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.UUIDToString(params.TaskId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "DELETE", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeDeleteTasksTaskIdResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// GetTasks invokes get-tasks operation.
+//
+// Your GET endpoint.
+//
+// GET /tasks
+func (c *Client) GetTasks(ctx context.Context) ([]Task, error) {
+	res, err := c.sendGetTasks(ctx)
 	return res, err
 }
 
-func (c *Client) sendAddTask(ctx context.Context, request *Task) (res *Task, err error) {
+func (c *Client) sendGetTasks(ctx context.Context) (res []Task, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("addTask"),
-		semconv.HTTPMethodKey.String("POST"),
+		otelogen.OperationID("get-tasks"),
+		semconv.HTTPMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/tasks"),
 	}
 
@@ -120,7 +216,7 @@ func (c *Client) sendAddTask(ctx context.Context, request *Task) (res *Task, err
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "AddTask",
+	ctx, span := c.cfg.Tracer.Start(ctx, "GetTasks",
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -142,12 +238,9 @@ func (c *Client) sendAddTask(ctx context.Context, request *Task) (res *Task, err
 	uri.AddPathParts(u, pathParts[:]...)
 
 	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u)
+	r, err := ht.NewRequest(ctx, "GET", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodeAddTaskRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
 	}
 
 	stage = "SendRequest"
@@ -158,7 +251,7 @@ func (c *Client) sendAddTask(ctx context.Context, request *Task) (res *Task, err
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeAddTaskResponse(resp)
+	result, err := decodeGetTasksResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -166,19 +259,19 @@ func (c *Client) sendAddTask(ctx context.Context, request *Task) (res *Task, err
 	return result, nil
 }
 
-// GetTaskById invokes getTaskById operation.
+// GetTasksTaskId invokes get-tasks-taskId operation.
 //
-// Returns a single task.
+// Your GET endpoint.
 //
 // GET /tasks/{taskId}
-func (c *Client) GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error) {
-	res, err := c.sendGetTaskById(ctx, params)
+func (c *Client) GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error) {
+	res, err := c.sendGetTasksTaskId(ctx, params)
 	return res, err
 }
 
-func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) (res GetTaskByIdRes, err error) {
+func (c *Client) sendGetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (res GetTasksTaskIdRes, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("getTaskById"),
+		otelogen.OperationID("get-tasks-taskId"),
 		semconv.HTTPMethodKey.String("GET"),
 		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
 	}
@@ -195,7 +288,7 @@ func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) 
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "GetTaskById",
+	ctx, span := c.cfg.Tracer.Start(ctx, "GetTasksTaskId",
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -248,7 +341,7 @@ func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) 
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeGetTaskByIdResponse(resp)
+	result, err := decodeGetTasksTaskIdResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -256,21 +349,21 @@ func (c *Client) sendGetTaskById(ctx context.Context, params GetTaskByIdParams) 
 	return result, nil
 }
 
-// UpdateTask invokes updateTask operation.
+// PostTasks invokes post-tasks operation.
 //
-// Updates a task.
+// Your POST endpoint.
 //
-// POST /tasks/{taskId}
-func (c *Client) UpdateTask(ctx context.Context, params UpdateTaskParams) error {
-	_, err := c.sendUpdateTask(ctx, params)
-	return err
+// POST /tasks
+func (c *Client) PostTasks(ctx context.Context, request OptTask) (*Task, error) {
+	res, err := c.sendPostTasks(ctx, request)
+	return res, err
 }
 
-func (c *Client) sendUpdateTask(ctx context.Context, params UpdateTaskParams) (res *UpdateTaskOK, err error) {
+func (c *Client) sendPostTasks(ctx context.Context, request OptTask) (res *Task, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("updateTask"),
+		otelogen.OperationID("post-tasks"),
 		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+		semconv.HTTPRouteKey.String("/tasks"),
 	}
 
 	// Run stopwatch.
@@ -285,7 +378,7 @@ func (c *Client) sendUpdateTask(ctx context.Context, params UpdateTaskParams) (r
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "UpdateTask",
+	ctx, span := c.cfg.Tracer.Start(ctx, "PostTasks",
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -302,87 +395,17 @@ func (c *Client) sendUpdateTask(ctx context.Context, params UpdateTaskParams) (r
 
 	stage = "BuildURL"
 	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/tasks/"
-	{
-		// Encode "taskId" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "taskId",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.TaskId))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
+	var pathParts [1]string
+	pathParts[0] = "/tasks"
 	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeQueryParams"
-	q := uri.NewQueryEncoder()
-	{
-		// Encode "site_url" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "site_url",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.SiteURL.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "condition" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "condition",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.Condition.Get(); ok {
-				return e.EncodeValue(conv.StringToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	{
-		// Encode "duration_day" parameter.
-		cfg := uri.QueryParameterEncodingConfig{
-			Name:    "duration_day",
-			Style:   uri.QueryStyleForm,
-			Explode: true,
-		}
-
-		if err := q.EncodeParam(cfg, func(e uri.Encoder) error {
-			if val, ok := params.DurationDay.Get(); ok {
-				return e.EncodeValue(conv.Int32ToString(val))
-			}
-			return nil
-		}); err != nil {
-			return res, errors.Wrap(err, "encode query")
-		}
-	}
-	u.RawQuery = q.Values().Encode()
 
 	stage = "EncodeRequest"
 	r, err := ht.NewRequest(ctx, "POST", u)
 	if err != nil {
 		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodePostTasksRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
 	}
 
 	stage = "SendRequest"
@@ -393,7 +416,7 @@ func (c *Client) sendUpdateTask(ctx context.Context, params UpdateTaskParams) (r
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeUpdateTaskResponse(resp)
+	result, err := decodePostTasksResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

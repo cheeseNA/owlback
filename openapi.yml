@@ -1,108 +1,128 @@
-openapi: 3.0.2
-servers:
-  - url: /v3
+openapi: 3.1.0
+x-stoplight:
+  id: malmoc95sulph
 info:
-  version: 1.0.0
-  title: Crawl Owl schema
-tags:
-  - name: task
-    description: Task operations
+  title: main
+  version: '1.0'
+servers:
+  - url: 'http://localhost:3000'
 paths:
   /tasks:
-    post:
+    get:
+      summary: Your GET endpoint
       tags:
         - task
-      summary: Add a new task
-      description: Add a new task
-      operationId: addTask
       responses:
         '200':
-          description: Successful operation
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+                  x-stoplight:
+                    id: esye4wsv4xev0
+      operationId: get-tasks
+      x-stoplight:
+        id: 9q6rfd0mb8rqm
+      parameters: []
+    post:
+      summary: Your POST endpoint
+      tags:
+        - task
+      responses:
+        '201':
+          description: Created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
+      operationId: post-tasks
+      x-stoplight:
+        id: gg89tsl9ogv5q
       requestBody:
-        description: Create a new task
-        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Task'
   '/tasks/{taskId}':
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: taskId
+        in: path
+        required: true
     get:
+      summary: Your GET endpoint
       tags:
         - task
-      summary: Find task by ID
-      description: Returns a single task
-      operationId: getTaskById
-      parameters:
-        - name: taskId
-          in: path
-          description: ID of task to return
-          required: true
-          schema:
-            type: string
-            format: uuid
       responses:
         '200':
-          description: successful operation
+          description: OK
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Task'
         '404':
-          description: Task not found
-    post:
+          description: Not Found
+      operationId: get-tasks-taskId
+      x-stoplight:
+        id: d6ogw1upatj59
+      parameters: []
+    delete:
+      summary: Your DELETE endpoint
       tags:
         - task
-      summary: Updates a task
-      description: ''
-      operationId: updateTask
-      parameters:
-        - name: taskId
-          in: path
-          description: ID of task that needs to be updated
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: site_url
-          in: query
-          description: Site URL of task that needs to be updated
-          schema:
-            type: string
-        - name: condition
-          in: query
-          description: Condition of task that needs to be updated
-          schema:
-            type: string
-        - name: duration_day
-          in: query
-          description: Duration day of task that needs to be updated
-          schema:
-            type: integer
-            format: int32
       responses:
         '200':
-          description: successful operation
+          description: OK
+      operationId: delete-tasks-taskId
+      x-stoplight:
+        id: wheqz161eflx2
+      parameters: []
 components:
   schemas:
     Task:
-      required:
-        - site_url
-        - condition
-        - duration_day
+      title: Task
+      x-stoplight:
+        id: ka2mtvt3r48ep
+      type: object
       properties:
         id:
           type: string
+          x-stoplight:
+            id: x6952st3sqiw3
           format: uuid
+          readOnly: true
         site_url:
           type: string
+          x-stoplight:
+            id: j4mv6zri6irqd
           format: uri
-        condition:
-          type: string
+          maxLength: 100
         duration_day:
           type: integer
-          format: int32
-      type: object
+          x-stoplight:
+            id: cf4tf4eq87fev
+          minimum: 0
+          exclusiveMinimum: true
+        condition_query:
+          type: string
+          x-stoplight:
+            id: rdr3rv3qtyyey
+        created_at:
+          type: string
+          x-stoplight:
+            id: ix5a27wonb2qq
+          format: date-time
+          readOnly: true
+        created_by:
+          type: string
+          x-stoplight:
+            id: 9idul0m1r4uyy
+          format: uuid
+          readOnly: true
+tags:
+  - name: task

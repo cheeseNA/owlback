@@ -8,24 +8,30 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// AddTask implements addTask operation.
+	// DeleteTasksTaskId implements delete-tasks-taskId operation.
 	//
-	// Add a new task.
+	// Your DELETE endpoint.
 	//
-	// POST /tasks
-	AddTask(ctx context.Context, req *Task) (*Task, error)
-	// GetTaskById implements getTaskById operation.
+	// DELETE /tasks/{taskId}
+	DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error
+	// GetTasks implements get-tasks operation.
 	//
-	// Returns a single task.
+	// Your GET endpoint.
+	//
+	// GET /tasks
+	GetTasks(ctx context.Context) ([]Task, error)
+	// GetTasksTaskId implements get-tasks-taskId operation.
+	//
+	// Your GET endpoint.
 	//
 	// GET /tasks/{taskId}
-	GetTaskById(ctx context.Context, params GetTaskByIdParams) (GetTaskByIdRes, error)
-	// UpdateTask implements updateTask operation.
+	GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error)
+	// PostTasks implements post-tasks operation.
 	//
-	// Updates a task.
+	// Your POST endpoint.
 	//
-	// POST /tasks/{taskId}
-	UpdateTask(ctx context.Context, params UpdateTaskParams) error
+	// POST /tasks
+	PostTasks(ctx context.Context, req OptTask) (*Task, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

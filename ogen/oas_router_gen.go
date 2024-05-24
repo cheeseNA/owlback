@@ -59,10 +59,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			if len(elem) == 0 {
 				switch r.Method {
+				case "GET":
+					s.handleGetTasksRequest([0]string{}, elemIsEscaped, w, r)
 				case "POST":
-					s.handleAddTaskRequest([0]string{}, elemIsEscaped, w, r)
+					s.handlePostTasksRequest([0]string{}, elemIsEscaped, w, r)
 				default:
-					s.notAllowed(w, r, "POST")
+					s.notAllowed(w, r, "GET,POST")
 				}
 
 				return
@@ -84,16 +86,16 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if len(elem) == 0 {
 					// Leaf node.
 					switch r.Method {
-					case "GET":
-						s.handleGetTaskByIdRequest([1]string{
+					case "DELETE":
+						s.handleDeleteTasksTaskIdRequest([1]string{
 							args[0],
 						}, elemIsEscaped, w, r)
-					case "POST":
-						s.handleUpdateTaskRequest([1]string{
+					case "GET":
+						s.handleGetTasksTaskIdRequest([1]string{
 							args[0],
 						}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "GET,POST")
+						s.notAllowed(w, r, "DELETE,GET")
 					}
 
 					return
@@ -193,10 +195,18 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 			if len(elem) == 0 {
 				switch method {
+				case "GET":
+					r.name = "GetTasks"
+					r.summary = "Your GET endpoint"
+					r.operationID = "get-tasks"
+					r.pathPattern = "/tasks"
+					r.args = args
+					r.count = 0
+					return r, true
 				case "POST":
-					r.name = "AddTask"
-					r.summary = "Add a new task"
-					r.operationID = "addTask"
+					r.name = "PostTasks"
+					r.summary = "Your POST endpoint"
+					r.operationID = "post-tasks"
 					r.pathPattern = "/tasks"
 					r.args = args
 					r.count = 0
@@ -221,20 +231,20 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 
 				if len(elem) == 0 {
 					switch method {
-					case "GET":
-						// Leaf: GetTaskById
-						r.name = "GetTaskById"
-						r.summary = "Find task by ID"
-						r.operationID = "getTaskById"
+					case "DELETE":
+						// Leaf: DeleteTasksTaskId
+						r.name = "DeleteTasksTaskId"
+						r.summary = "Your DELETE endpoint"
+						r.operationID = "delete-tasks-taskId"
 						r.pathPattern = "/tasks/{taskId}"
 						r.args = args
 						r.count = 1
 						return r, true
-					case "POST":
-						// Leaf: UpdateTask
-						r.name = "UpdateTask"
-						r.summary = "Updates a task"
-						r.operationID = "updateTask"
+					case "GET":
+						// Leaf: GetTasksTaskId
+						r.name = "GetTasksTaskId"
+						r.summary = "Your GET endpoint"
+						r.operationID = "get-tasks-taskId"
 						r.pathPattern = "/tasks/{taskId}"
 						r.args = args
 						r.count = 1

@@ -11,13 +11,24 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func encodeAddTaskResponse(response *Task, w http.ResponseWriter, span trace.Span) error {
+func encodeDeleteTasksTaskIdResponse(response *DeleteTasksTaskIdOK, w http.ResponseWriter, span trace.Span) error {
+	w.WriteHeader(200)
+	span.SetStatus(codes.Ok, http.StatusText(200))
+
+	return nil
+}
+
+func encodeGetTasksResponse(response []Task, w http.ResponseWriter, span trace.Span) error {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(200)
 	span.SetStatus(codes.Ok, http.StatusText(200))
 
 	e := new(jx.Encoder)
-	response.Encode(e)
+	e.ArrStart()
+	for _, elem := range response {
+		elem.Encode(e)
+	}
+	e.ArrEnd()
 	if _, err := e.WriteTo(w); err != nil {
 		return errors.Wrap(err, "write")
 	}
@@ -25,7 +36,7 @@ func encodeAddTaskResponse(response *Task, w http.ResponseWriter, span trace.Spa
 	return nil
 }
 
-func encodeGetTaskByIdResponse(response GetTaskByIdRes, w http.ResponseWriter, span trace.Span) error {
+func encodeGetTasksTaskIdResponse(response GetTasksTaskIdRes, w http.ResponseWriter, span trace.Span) error {
 	switch response := response.(type) {
 	case *Task:
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
@@ -40,7 +51,7 @@ func encodeGetTaskByIdResponse(response GetTaskByIdRes, w http.ResponseWriter, s
 
 		return nil
 
-	case *GetTaskByIdNotFound:
+	case *GetTasksTaskIdNotFound:
 		w.WriteHeader(404)
 		span.SetStatus(codes.Error, http.StatusText(404))
 
@@ -51,9 +62,16 @@ func encodeGetTaskByIdResponse(response GetTaskByIdRes, w http.ResponseWriter, s
 	}
 }
 
-func encodeUpdateTaskResponse(response *UpdateTaskOK, w http.ResponseWriter, span trace.Span) error {
-	w.WriteHeader(200)
-	span.SetStatus(codes.Ok, http.StatusText(200))
+func encodePostTasksResponse(response *Task, w http.ResponseWriter, span trace.Span) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(201)
+	span.SetStatus(codes.Ok, http.StatusText(201))
+
+	e := new(jx.Encoder)
+	response.Encode(e)
+	if _, err := e.WriteTo(w); err != nil {
+		return errors.Wrap(err, "write")
+	}
 
 	return nil
 }
