@@ -7,7 +7,7 @@ import (
 )
 
 type Task struct {
-	ID             uuid.UUID `gorm:"primaryKey,type:uuid,default:uuid_generate_v4(),not null,unique"`
+	ID             uuid.UUID `gorm:"primaryKey,type:uuid,default:gen_random_uuid(),not null,unique"`
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
 	CreatedBy      uuid.UUID `gorm:"type:uuid;not null"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime"`
