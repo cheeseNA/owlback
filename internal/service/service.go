@@ -3,8 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/cheeseNA/owlback/ogen"
-	"github.com/cheeseNA/owlback/repository"
+	api "github.com/cheeseNA/owlback/internal/ogen"
+	"github.com/cheeseNA/owlback/internal/repository"
 	"net/url"
 )
 
