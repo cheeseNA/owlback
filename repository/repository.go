@@ -7,8 +7,10 @@ import (
 )
 
 type ITaskRepository interface {
-	AddTask(task Task) error
-	GetTaskById(id uuid.UUID) (Task, error)
+	CreateTask(task Task) error
+	DeleteTaskByID(id uuid.UUID) error
+	GetTaskByID(id uuid.UUID) (Task, error)
+	GetTasks() ([]Task, error)
 }
 
 type TaskRepository struct {
@@ -20,13 +22,26 @@ func NewTaskRepository(db *gorm.DB, logger *zap.Logger) *TaskRepository {
 	return &TaskRepository{db: db, logger: logger}
 }
 
-func (r *TaskRepository) AddTask(task Task) error {
-	r.logger.Info("Adding task", zap.Any("task", task))
+func (r *TaskRepository) CreateTask(task Task) error {
+	r.logger.Info("Creating task", zap.Any("task", task))
 	return r.db.Create(&task).Error
 }
 
-func (r *TaskRepository) GetTaskById(id uuid.UUID) (Task, error) {
+func (r *TaskRepository) DeleteTaskByID(id uuid.UUID) error {
+	r.logger.Info("Deleting task", zap.Any("id", id))
+	return r.db.Delete(&Task{}, id).Error
+}
+
+func (r *TaskRepository) GetTaskByID(id uuid.UUID) (Task, error) {
+	r.logger.Info("Getting task by id", zap.Any("id", id))
 	var task Task
 	err := r.db.First(&task, id).Error
 	return task, err
+}
+
+func (r *TaskRepository) GetTasks() ([]Task, error) {
+	r.logger.Info("Getting tasks")
+	var tasks []Task
+	err := r.db.Find(&tasks).Error
+	return tasks, err
 }
