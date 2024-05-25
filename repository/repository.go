@@ -24,12 +24,17 @@ func NewTaskRepository(db *gorm.DB, logger *zap.Logger) *TaskRepository {
 
 func (r *TaskRepository) CreateTask(task Task) error {
 	r.logger.Info("Creating task", zap.Any("task", task))
-	return r.db.Create(&task).Error
+	task.CreatedBy = uuid.New()
+	return r.db.Omit("ID").Create(&task).Error
 }
 
 func (r *TaskRepository) DeleteTaskByID(id uuid.UUID) error {
 	r.logger.Info("Deleting task", zap.Any("id", id))
-	return r.db.Delete(&Task{}, id).Error
+	tx := r.db.Delete(&Task{}, id)
+	if tx.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return tx.Error
 }
 
 func (r *TaskRepository) GetTaskByID(id uuid.UUID) (Task, error) {
