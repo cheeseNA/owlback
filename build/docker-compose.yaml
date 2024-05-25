@@ -1,0 +1,31 @@
+services:
+  webapi:
+    build:
+      context: ../
+      dockerfile: build/Dockerfile
+    environment:
+      POSTGRES_CONNECTION_STRING: postgres://postgres:password@pg:5432/postgres
+    ports:
+      - 8080:8080
+    depends_on:
+      pg:
+        condition: service_healthy
+
+  pg:
+    image: "postgres:15.1"
+    container_name: "pg"
+    environment:
+      POSTGRES_PASSWORD: "password"
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-volume:/var/lib/postgresql/data
+      - ../scripts/migrator/postgres/:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-volume:
