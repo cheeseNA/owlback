@@ -62,7 +62,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				case "GET":
 					s.handleGetTasksRequest([0]string{}, elemIsEscaped, w, r)
 				case "POST":
-					s.handlePostTasksRequest([0]string{}, elemIsEscaped, w, r)
+					s.handleCrateTaskRequest([0]string{}, elemIsEscaped, w, r)
 				default:
 					s.notAllowed(w, r, "GET,POST")
 				}
@@ -87,11 +87,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					// Leaf node.
 					switch r.Method {
 					case "DELETE":
-						s.handleDeleteTasksTaskIdRequest([1]string{
+						s.handleDeleteTaskByIDRequest([1]string{
 							args[0],
 						}, elemIsEscaped, w, r)
 					case "GET":
-						s.handleGetTasksTaskIdRequest([1]string{
+						s.handleGetTaskByIDRequest([1]string{
 							args[0],
 						}, elemIsEscaped, w, r)
 					default:
@@ -197,16 +197,16 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				switch method {
 				case "GET":
 					r.name = "GetTasks"
-					r.summary = "Your GET endpoint"
+					r.summary = "Get Tasks"
 					r.operationID = "get-tasks"
 					r.pathPattern = "/tasks"
 					r.args = args
 					r.count = 0
 					return r, true
 				case "POST":
-					r.name = "PostTasks"
-					r.summary = "Your POST endpoint"
-					r.operationID = "post-tasks"
+					r.name = "CrateTask"
+					r.summary = "Create Task"
+					r.operationID = "crate-task"
 					r.pathPattern = "/tasks"
 					r.args = args
 					r.count = 0
@@ -232,19 +232,19 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				if len(elem) == 0 {
 					switch method {
 					case "DELETE":
-						// Leaf: DeleteTasksTaskId
-						r.name = "DeleteTasksTaskId"
-						r.summary = "Your DELETE endpoint"
-						r.operationID = "delete-tasks-taskId"
+						// Leaf: DeleteTaskByID
+						r.name = "DeleteTaskByID"
+						r.summary = "Delete Task by ID"
+						r.operationID = "delete-task-by-id"
 						r.pathPattern = "/tasks/{taskId}"
 						r.args = args
 						r.count = 1
 						return r, true
 					case "GET":
-						// Leaf: GetTasksTaskId
-						r.name = "GetTasksTaskId"
-						r.summary = "Your GET endpoint"
-						r.operationID = "get-tasks-taskId"
+						// Leaf: GetTaskByID
+						r.name = "GetTaskByID"
+						r.summary = "Get Task by ID"
+						r.operationID = "get-task-by-id"
 						r.pathPattern = "/tasks/{taskId}"
 						r.args = args
 						r.count = 1

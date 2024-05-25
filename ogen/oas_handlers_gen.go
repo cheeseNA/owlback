@@ -20,20 +20,20 @@ import (
 	"github.com/ogen-go/ogen/otelogen"
 )
 
-// handleDeleteTasksTaskIdRequest handles delete-tasks-taskId operation.
+// handleCrateTaskRequest handles crate-task operation.
 //
-// Your DELETE endpoint.
+// Create Task.
 //
-// DELETE /tasks/{taskId}
-func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+// POST /tasks
+func (s *Server) handleCrateTaskRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("delete-tasks-taskId"),
-		semconv.HTTPMethodKey.String("DELETE"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+		otelogen.OperationID("crate-task"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/tasks"),
 	}
 
 	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), "DeleteTasksTaskId",
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "CrateTask",
 		trace.WithAttributes(otelAttrs...),
 		serverSpanKind,
 	)
@@ -64,11 +64,123 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 		}
 		err          error
 		opErrContext = ogenerrors.OperationContext{
-			Name: "DeleteTasksTaskId",
-			ID:   "delete-tasks-taskId",
+			Name: "CrateTask",
+			ID:   "crate-task",
 		}
 	)
-	params, err := decodeDeleteTasksTaskIdParams(args, argsEscaped, r)
+	request, close, err := s.decodeCrateTaskRequest(r)
+	if err != nil {
+		err = &ogenerrors.DecodeRequestError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeRequest", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+	defer func() {
+		if err := close(); err != nil {
+			recordError("CloseRequest", err)
+		}
+	}()
+
+	var response *CrateTaskCreated
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    "CrateTask",
+			OperationSummary: "Create Task",
+			OperationID:      "crate-task",
+			Body:             request,
+			Params:           middleware.Parameters{},
+			Raw:              r,
+		}
+
+		type (
+			Request  = OptTaskRequest
+			Params   = struct{}
+			Response = *CrateTaskCreated
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			nil,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				err = s.h.CrateTask(ctx, request)
+				return response, err
+			},
+		)
+	} else {
+		err = s.h.CrateTask(ctx, request)
+	}
+	if err != nil {
+		defer recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeCrateTaskResponse(response, w, span); err != nil {
+		defer recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handleDeleteTaskByIDRequest handles delete-task-by-id operation.
+//
+// Delete Task by ID.
+//
+// DELETE /tasks/{taskId}
+func (s *Server) handleDeleteTaskByIDRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("delete-task-by-id"),
+		semconv.HTTPMethodKey.String("DELETE"),
+		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "DeleteTaskByID",
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Add Labeler to context.
+	labeler := &Labeler{attrs: otelAttrs}
+	ctx = contextWithLabeler(ctx, labeler)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+		attrOpt := metric.WithAttributeSet(labeler.AttributeSet())
+
+		// Increment request counter.
+		s.requests.Add(ctx, 1, attrOpt)
+
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), attrOpt)
+	}()
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			s.errors.Add(ctx, 1, metric.WithAttributeSet(labeler.AttributeSet()))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: "DeleteTaskByID",
+			ID:   "delete-task-by-id",
+		}
+	)
+	params, err := decodeDeleteTaskByIDParams(args, argsEscaped, r)
 	if err != nil {
 		err = &ogenerrors.DecodeParamsError{
 			OperationContext: opErrContext,
@@ -79,13 +191,13 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 		return
 	}
 
-	var response *DeleteTasksTaskIdOK
+	var response *DeleteTaskByIDOK
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
-			OperationName:    "DeleteTasksTaskId",
-			OperationSummary: "Your DELETE endpoint",
-			OperationID:      "delete-tasks-taskId",
+			OperationName:    "DeleteTaskByID",
+			OperationSummary: "Delete Task by ID",
+			OperationID:      "delete-task-by-id",
 			Body:             nil,
 			Params: middleware.Parameters{
 				{
@@ -98,8 +210,8 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 
 		type (
 			Request  = struct{}
-			Params   = DeleteTasksTaskIdParams
-			Response = *DeleteTasksTaskIdOK
+			Params   = DeleteTaskByIDParams
+			Response = *DeleteTaskByIDOK
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -108,14 +220,14 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 		](
 			m,
 			mreq,
-			unpackDeleteTasksTaskIdParams,
+			unpackDeleteTaskByIDParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				err = s.h.DeleteTasksTaskId(ctx, params)
+				err = s.h.DeleteTaskByID(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		err = s.h.DeleteTasksTaskId(ctx, params)
+		err = s.h.DeleteTaskByID(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -123,7 +235,119 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 		return
 	}
 
-	if err := encodeDeleteTasksTaskIdResponse(response, w, span); err != nil {
+	if err := encodeDeleteTaskByIDResponse(response, w, span); err != nil {
+		defer recordError("EncodeResponse", err)
+		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
+			s.cfg.ErrorHandler(ctx, w, r, err)
+		}
+		return
+	}
+}
+
+// handleGetTaskByIDRequest handles get-task-by-id operation.
+//
+// Get Task by ID.
+//
+// GET /tasks/{taskId}
+func (s *Server) handleGetTaskByIDRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("get-task-by-id"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+	}
+
+	// Start a span for this request.
+	ctx, span := s.cfg.Tracer.Start(r.Context(), "GetTaskByID",
+		trace.WithAttributes(otelAttrs...),
+		serverSpanKind,
+	)
+	defer span.End()
+
+	// Add Labeler to context.
+	labeler := &Labeler{attrs: otelAttrs}
+	ctx = contextWithLabeler(ctx, labeler)
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		elapsedDuration := time.Since(startTime)
+		attrOpt := metric.WithAttributeSet(labeler.AttributeSet())
+
+		// Increment request counter.
+		s.requests.Add(ctx, 1, attrOpt)
+
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), attrOpt)
+	}()
+
+	var (
+		recordError = func(stage string, err error) {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			s.errors.Add(ctx, 1, metric.WithAttributeSet(labeler.AttributeSet()))
+		}
+		err          error
+		opErrContext = ogenerrors.OperationContext{
+			Name: "GetTaskByID",
+			ID:   "get-task-by-id",
+		}
+	)
+	params, err := decodeGetTaskByIDParams(args, argsEscaped, r)
+	if err != nil {
+		err = &ogenerrors.DecodeParamsError{
+			OperationContext: opErrContext,
+			Err:              err,
+		}
+		defer recordError("DecodeParams", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	var response GetTaskByIDRes
+	if m := s.cfg.Middleware; m != nil {
+		mreq := middleware.Request{
+			Context:          ctx,
+			OperationName:    "GetTaskByID",
+			OperationSummary: "Get Task by ID",
+			OperationID:      "get-task-by-id",
+			Body:             nil,
+			Params: middleware.Parameters{
+				{
+					Name: "taskId",
+					In:   "path",
+				}: params.TaskId,
+			},
+			Raw: r,
+		}
+
+		type (
+			Request  = struct{}
+			Params   = GetTaskByIDParams
+			Response = GetTaskByIDRes
+		)
+		response, err = middleware.HookMiddleware[
+			Request,
+			Params,
+			Response,
+		](
+			m,
+			mreq,
+			unpackGetTaskByIDParams,
+			func(ctx context.Context, request Request, params Params) (response Response, err error) {
+				response, err = s.h.GetTaskByID(ctx, params)
+				return response, err
+			},
+		)
+	} else {
+		response, err = s.h.GetTaskByID(ctx, params)
+	}
+	if err != nil {
+		defer recordError("Internal", err)
+		s.cfg.ErrorHandler(ctx, w, r, err)
+		return
+	}
+
+	if err := encodeGetTaskByIDResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)
@@ -134,7 +358,7 @@ func (s *Server) handleDeleteTasksTaskIdRequest(args [1]string, argsEscaped bool
 
 // handleGetTasksRequest handles get-tasks operation.
 //
-// Your GET endpoint.
+// Get Tasks.
 //
 // GET /tasks
 func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
@@ -177,12 +401,12 @@ func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.
 		err error
 	)
 
-	var response []Task
+	var response []TaskResponse
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
 			OperationName:    "GetTasks",
-			OperationSummary: "Your GET endpoint",
+			OperationSummary: "Get Tasks",
 			OperationID:      "get-tasks",
 			Body:             nil,
 			Params:           middleware.Parameters{},
@@ -192,7 +416,7 @@ func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = []Task
+			Response = []TaskResponse
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -217,230 +441,6 @@ func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.
 	}
 
 	if err := encodeGetTasksResponse(response, w, span); err != nil {
-		defer recordError("EncodeResponse", err)
-		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
-			s.cfg.ErrorHandler(ctx, w, r, err)
-		}
-		return
-	}
-}
-
-// handleGetTasksTaskIdRequest handles get-tasks-taskId operation.
-//
-// Your GET endpoint.
-//
-// GET /tasks/{taskId}
-func (s *Server) handleGetTasksTaskIdRequest(args [1]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("get-tasks-taskId"),
-		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
-	}
-
-	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), "GetTasksTaskId",
-		trace.WithAttributes(otelAttrs...),
-		serverSpanKind,
-	)
-	defer span.End()
-
-	// Add Labeler to context.
-	labeler := &Labeler{attrs: otelAttrs}
-	ctx = contextWithLabeler(ctx, labeler)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		elapsedDuration := time.Since(startTime)
-		attrOpt := metric.WithAttributeSet(labeler.AttributeSet())
-
-		// Increment request counter.
-		s.requests.Add(ctx, 1, attrOpt)
-
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), attrOpt)
-	}()
-
-	var (
-		recordError = func(stage string, err error) {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, metric.WithAttributeSet(labeler.AttributeSet()))
-		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: "GetTasksTaskId",
-			ID:   "get-tasks-taskId",
-		}
-	)
-	params, err := decodeGetTasksTaskIdParams(args, argsEscaped, r)
-	if err != nil {
-		err = &ogenerrors.DecodeParamsError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeParams", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	var response GetTasksTaskIdRes
-	if m := s.cfg.Middleware; m != nil {
-		mreq := middleware.Request{
-			Context:          ctx,
-			OperationName:    "GetTasksTaskId",
-			OperationSummary: "Your GET endpoint",
-			OperationID:      "get-tasks-taskId",
-			Body:             nil,
-			Params: middleware.Parameters{
-				{
-					Name: "taskId",
-					In:   "path",
-				}: params.TaskId,
-			},
-			Raw: r,
-		}
-
-		type (
-			Request  = struct{}
-			Params   = GetTasksTaskIdParams
-			Response = GetTasksTaskIdRes
-		)
-		response, err = middleware.HookMiddleware[
-			Request,
-			Params,
-			Response,
-		](
-			m,
-			mreq,
-			unpackGetTasksTaskIdParams,
-			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.GetTasksTaskId(ctx, params)
-				return response, err
-			},
-		)
-	} else {
-		response, err = s.h.GetTasksTaskId(ctx, params)
-	}
-	if err != nil {
-		defer recordError("Internal", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	if err := encodeGetTasksTaskIdResponse(response, w, span); err != nil {
-		defer recordError("EncodeResponse", err)
-		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
-			s.cfg.ErrorHandler(ctx, w, r, err)
-		}
-		return
-	}
-}
-
-// handlePostTasksRequest handles post-tasks operation.
-//
-// Your POST endpoint.
-//
-// POST /tasks
-func (s *Server) handlePostTasksRequest(args [0]string, argsEscaped bool, w http.ResponseWriter, r *http.Request) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("post-tasks"),
-		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/tasks"),
-	}
-
-	// Start a span for this request.
-	ctx, span := s.cfg.Tracer.Start(r.Context(), "PostTasks",
-		trace.WithAttributes(otelAttrs...),
-		serverSpanKind,
-	)
-	defer span.End()
-
-	// Add Labeler to context.
-	labeler := &Labeler{attrs: otelAttrs}
-	ctx = contextWithLabeler(ctx, labeler)
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		elapsedDuration := time.Since(startTime)
-		attrOpt := metric.WithAttributeSet(labeler.AttributeSet())
-
-		// Increment request counter.
-		s.requests.Add(ctx, 1, attrOpt)
-
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		s.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), attrOpt)
-	}()
-
-	var (
-		recordError = func(stage string, err error) {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			s.errors.Add(ctx, 1, metric.WithAttributeSet(labeler.AttributeSet()))
-		}
-		err          error
-		opErrContext = ogenerrors.OperationContext{
-			Name: "PostTasks",
-			ID:   "post-tasks",
-		}
-	)
-	request, close, err := s.decodePostTasksRequest(r)
-	if err != nil {
-		err = &ogenerrors.DecodeRequestError{
-			OperationContext: opErrContext,
-			Err:              err,
-		}
-		defer recordError("DecodeRequest", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-	defer func() {
-		if err := close(); err != nil {
-			recordError("CloseRequest", err)
-		}
-	}()
-
-	var response *Task
-	if m := s.cfg.Middleware; m != nil {
-		mreq := middleware.Request{
-			Context:          ctx,
-			OperationName:    "PostTasks",
-			OperationSummary: "Your POST endpoint",
-			OperationID:      "post-tasks",
-			Body:             request,
-			Params:           middleware.Parameters{},
-			Raw:              r,
-		}
-
-		type (
-			Request  = OptTask
-			Params   = struct{}
-			Response = *Task
-		)
-		response, err = middleware.HookMiddleware[
-			Request,
-			Params,
-			Response,
-		](
-			m,
-			mreq,
-			nil,
-			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				response, err = s.h.PostTasks(ctx, request)
-				return response, err
-			},
-		)
-	} else {
-		response, err = s.h.PostTasks(ctx, request)
-	}
-	if err != nil {
-		defer recordError("Internal", err)
-		s.cfg.ErrorHandler(ctx, w, r, err)
-		return
-	}
-
-	if err := encodePostTasksResponse(response, w, span); err != nil {
 		defer recordError("EncodeResponse", err)
 		if !errors.Is(err, ht.ErrInternalServerErrorResponse) {
 			s.cfg.ErrorHandler(ctx, w, r, err)

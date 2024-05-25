@@ -15,16 +15,25 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeDeleteTasksTaskIdResponse(resp *http.Response) (res *DeleteTasksTaskIdOK, _ error) {
+func decodeCrateTaskResponse(resp *http.Response) (res *CrateTaskCreated, _ error) {
 	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		return &DeleteTasksTaskIdOK{}, nil
+	case 201:
+		// Code 201.
+		return &CrateTaskCreated{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeGetTasksResponse(resp *http.Response) (res []Task, _ error) {
+func decodeDeleteTaskByIDResponse(resp *http.Response) (res *DeleteTaskByIDOK, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &DeleteTaskByIDOK{}, nil
+	}
+	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+}
+
+func decodeGetTaskByIDResponse(resp *http.Response) (res GetTaskByIDRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -40,11 +49,64 @@ func decodeGetTasksResponse(resp *http.Response) (res []Task, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response []Task
+			var response TaskResponse
 			if err := func() error {
-				response = make([]Task, 0)
+				if err := response.Decode(d); err != nil {
+					return err
+				}
+				if err := d.Skip(); err != io.EOF {
+					return errors.New("unexpected trailing data")
+				}
+				return nil
+			}(); err != nil {
+				err = &ogenerrors.DecodeBodyError{
+					ContentType: ct,
+					Body:        buf,
+					Err:         err,
+				}
+				return res, err
+			}
+			// Validate response.
+			if err := func() error {
+				if err := response.Validate(); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return res, errors.Wrap(err, "validate")
+			}
+			return &response, nil
+		default:
+			return res, validate.InvalidContentType(ct)
+		}
+	case 404:
+		// Code 404.
+		return &GetTaskByIDNotFound{}, nil
+	}
+	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+}
+
+func decodeGetTasksResponse(resp *http.Response) (res []TaskResponse, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+		if err != nil {
+			return res, errors.Wrap(err, "parse media type")
+		}
+		switch {
+		case ct == "application/json":
+			buf, err := io.ReadAll(resp.Body)
+			if err != nil {
+				return res, err
+			}
+			d := jx.DecodeBytes(buf)
+
+			var response []TaskResponse
+			if err := func() error {
+				response = make([]TaskResponse, 0)
 				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem Task
+					var elem TaskResponse
 					if err := elem.Decode(d); err != nil {
 						return err
 					}
@@ -92,109 +154,6 @@ func decodeGetTasksResponse(resp *http.Response) (res []Task, _ error) {
 				return res, errors.Wrap(err, "validate")
 			}
 			return response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
-}
-
-func decodeGetTasksTaskIdResponse(resp *http.Response) (res GetTasksTaskIdRes, _ error) {
-	switch resp.StatusCode {
-	case 200:
-		// Code 200.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response Task
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
-		default:
-			return res, validate.InvalidContentType(ct)
-		}
-	case 404:
-		// Code 404.
-		return &GetTasksTaskIdNotFound{}, nil
-	}
-	return res, validate.UnexpectedStatusCode(resp.StatusCode)
-}
-
-func decodePostTasksResponse(resp *http.Response) (res *Task, _ error) {
-	switch resp.StatusCode {
-	case 201:
-		// Code 201.
-		ct, _, err := mime.ParseMediaType(resp.Header.Get("Content-Type"))
-		if err != nil {
-			return res, errors.Wrap(err, "parse media type")
-		}
-		switch {
-		case ct == "application/json":
-			buf, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return res, err
-			}
-			d := jx.DecodeBytes(buf)
-
-			var response Task
-			if err := func() error {
-				if err := response.Decode(d); err != nil {
-					return err
-				}
-				if err := d.Skip(); err != io.EOF {
-					return errors.New("unexpected trailing data")
-				}
-				return nil
-			}(); err != nil {
-				err = &ogenerrors.DecodeBodyError{
-					ContentType: ct,
-					Body:        buf,
-					Err:         err,
-				}
-				return res, err
-			}
-			// Validate response.
-			if err := func() error {
-				if err := response.Validate(); err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return res, errors.Wrap(err, "validate")
-			}
-			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}

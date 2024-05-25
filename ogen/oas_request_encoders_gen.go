@@ -11,8 +11,8 @@ import (
 	ht "github.com/ogen-go/ogen/http"
 )
 
-func encodePostTasksRequest(
-	req OptTask,
+func encodeCrateTaskRequest(
+	req OptTaskRequest,
 	r *http.Request,
 ) error {
 	const contentType = "application/json"

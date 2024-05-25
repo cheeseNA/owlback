@@ -8,30 +8,30 @@ import (
 
 // Handler handles operations described by OpenAPI v3 specification.
 type Handler interface {
-	// DeleteTasksTaskId implements delete-tasks-taskId operation.
+	// CrateTask implements crate-task operation.
 	//
-	// Your DELETE endpoint.
-	//
-	// DELETE /tasks/{taskId}
-	DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error
-	// GetTasks implements get-tasks operation.
-	//
-	// Your GET endpoint.
-	//
-	// GET /tasks
-	GetTasks(ctx context.Context) ([]Task, error)
-	// GetTasksTaskId implements get-tasks-taskId operation.
-	//
-	// Your GET endpoint.
-	//
-	// GET /tasks/{taskId}
-	GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error)
-	// PostTasks implements post-tasks operation.
-	//
-	// Your POST endpoint.
+	// Create Task.
 	//
 	// POST /tasks
-	PostTasks(ctx context.Context, req OptTask) (*Task, error)
+	CrateTask(ctx context.Context, req OptTaskRequest) error
+	// DeleteTaskByID implements delete-task-by-id operation.
+	//
+	// Delete Task by ID.
+	//
+	// DELETE /tasks/{taskId}
+	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error
+	// GetTaskByID implements get-task-by-id operation.
+	//
+	// Get Task by ID.
+	//
+	// GET /tasks/{taskId}
+	GetTaskByID(ctx context.Context, params GetTaskByIDParams) (GetTaskByIDRes, error)
+	// GetTasks implements get-tasks operation.
+	//
+	// Get Tasks.
+	//
+	// GET /tasks
+	GetTasks(ctx context.Context) ([]TaskResponse, error)
 }
 
 // Server implements http server based on OpenAPI v3 specification and

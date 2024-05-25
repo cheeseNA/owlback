@@ -9,46 +9,49 @@ import (
 	"github.com/google/uuid"
 )
 
-// DeleteTasksTaskIdOK is response for DeleteTasksTaskId operation.
-type DeleteTasksTaskIdOK struct{}
+// CrateTaskCreated is response for CrateTask operation.
+type CrateTaskCreated struct{}
 
-// GetTasksTaskIdNotFound is response for GetTasksTaskId operation.
-type GetTasksTaskIdNotFound struct{}
+// DeleteTaskByIDOK is response for DeleteTaskByID operation.
+type DeleteTaskByIDOK struct{}
 
-func (*GetTasksTaskIdNotFound) getTasksTaskIdRes() {}
+// GetTaskByIDNotFound is response for GetTaskByID operation.
+type GetTaskByIDNotFound struct{}
 
-// NewOptDateTime returns new OptDateTime with value set to v.
-func NewOptDateTime(v time.Time) OptDateTime {
-	return OptDateTime{
+func (*GetTaskByIDNotFound) getTaskByIDRes() {}
+
+// NewOptTaskRequest returns new OptTaskRequest with value set to v.
+func NewOptTaskRequest(v TaskRequest) OptTaskRequest {
+	return OptTaskRequest{
 		Value: v,
 		Set:   true,
 	}
 }
 
-// OptDateTime is optional time.Time.
-type OptDateTime struct {
-	Value time.Time
+// OptTaskRequest is optional TaskRequest.
+type OptTaskRequest struct {
+	Value TaskRequest
 	Set   bool
 }
 
-// IsSet returns true if OptDateTime was set.
-func (o OptDateTime) IsSet() bool { return o.Set }
+// IsSet returns true if OptTaskRequest was set.
+func (o OptTaskRequest) IsSet() bool { return o.Set }
 
 // Reset unsets value.
-func (o *OptDateTime) Reset() {
-	var v time.Time
+func (o *OptTaskRequest) Reset() {
+	var v TaskRequest
 	o.Value = v
 	o.Set = false
 }
 
 // SetTo sets value to v.
-func (o *OptDateTime) SetTo(v time.Time) {
+func (o *OptTaskRequest) SetTo(v TaskRequest) {
 	o.Set = true
 	o.Value = v
 }
 
 // Get returns value and boolean that denotes whether value was set.
-func (o OptDateTime) Get() (v time.Time, ok bool) {
+func (o OptTaskRequest) Get() (v TaskRequest, ok bool) {
 	if !o.Set {
 		return v, false
 	}
@@ -56,311 +59,152 @@ func (o OptDateTime) Get() (v time.Time, ok bool) {
 }
 
 // Or returns value if set, or given parameter if does not.
-func (o OptDateTime) Or(d time.Time) time.Time {
+func (o OptTaskRequest) Or(d TaskRequest) TaskRequest {
 	if v, ok := o.Get(); ok {
 		return v
 	}
 	return d
 }
 
-// NewOptInt returns new OptInt with value set to v.
-func NewOptInt(v int) OptInt {
-	return OptInt{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptInt is optional int.
-type OptInt struct {
-	Value int
-	Set   bool
-}
-
-// IsSet returns true if OptInt was set.
-func (o OptInt) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptInt) Reset() {
-	var v int
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptInt) SetTo(v int) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptInt) Get() (v int, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptInt) Or(d int) int {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptString returns new OptString with value set to v.
-func NewOptString(v string) OptString {
-	return OptString{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptString is optional string.
-type OptString struct {
-	Value string
-	Set   bool
-}
-
-// IsSet returns true if OptString was set.
-func (o OptString) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptString) Reset() {
-	var v string
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptString) SetTo(v string) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptString) Get() (v string, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptString) Or(d string) string {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptTask returns new OptTask with value set to v.
-func NewOptTask(v Task) OptTask {
-	return OptTask{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptTask is optional Task.
-type OptTask struct {
-	Value Task
-	Set   bool
-}
-
-// IsSet returns true if OptTask was set.
-func (o OptTask) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptTask) Reset() {
-	var v Task
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptTask) SetTo(v Task) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptTask) Get() (v Task, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptTask) Or(d Task) Task {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptURI returns new OptURI with value set to v.
-func NewOptURI(v url.URL) OptURI {
-	return OptURI{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptURI is optional url.URL.
-type OptURI struct {
-	Value url.URL
-	Set   bool
-}
-
-// IsSet returns true if OptURI was set.
-func (o OptURI) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptURI) Reset() {
-	var v url.URL
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptURI) SetTo(v url.URL) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptURI) Get() (v url.URL, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptURI) Or(d url.URL) url.URL {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// NewOptUUID returns new OptUUID with value set to v.
-func NewOptUUID(v uuid.UUID) OptUUID {
-	return OptUUID{
-		Value: v,
-		Set:   true,
-	}
-}
-
-// OptUUID is optional uuid.UUID.
-type OptUUID struct {
-	Value uuid.UUID
-	Set   bool
-}
-
-// IsSet returns true if OptUUID was set.
-func (o OptUUID) IsSet() bool { return o.Set }
-
-// Reset unsets value.
-func (o *OptUUID) Reset() {
-	var v uuid.UUID
-	o.Value = v
-	o.Set = false
-}
-
-// SetTo sets value to v.
-func (o *OptUUID) SetTo(v uuid.UUID) {
-	o.Set = true
-	o.Value = v
-}
-
-// Get returns value and boolean that denotes whether value was set.
-func (o OptUUID) Get() (v uuid.UUID, ok bool) {
-	if !o.Set {
-		return v, false
-	}
-	return o.Value, true
-}
-
-// Or returns value if set, or given parameter if does not.
-func (o OptUUID) Or(d uuid.UUID) uuid.UUID {
-	if v, ok := o.Get(); ok {
-		return v
-	}
-	return d
-}
-
-// Ref: #/components/schemas/Task
-type Task struct {
-	ID             OptUUID     `json:"id"`
-	SiteURL        OptURI      `json:"site_url"`
-	DurationDay    OptInt      `json:"duration_day"`
-	ConditionQuery OptString   `json:"condition_query"`
-	CreatedAt      OptDateTime `json:"created_at"`
-	CreatedBy      OptUUID     `json:"created_by"`
-}
-
-// GetID returns the value of ID.
-func (s *Task) GetID() OptUUID {
-	return s.ID
+// Ref: #/components/schemas/TaskRequest
+type TaskRequest struct {
+	SiteURL        url.URL `json:"site_url"`
+	DurationDay    int     `json:"duration_day"`
+	ConditionQuery string  `json:"condition_query"`
+	IsPublic       bool    `json:"is_public"`
 }
 
 // GetSiteURL returns the value of SiteURL.
-func (s *Task) GetSiteURL() OptURI {
+func (s *TaskRequest) GetSiteURL() url.URL {
 	return s.SiteURL
 }
 
 // GetDurationDay returns the value of DurationDay.
-func (s *Task) GetDurationDay() OptInt {
+func (s *TaskRequest) GetDurationDay() int {
 	return s.DurationDay
 }
 
 // GetConditionQuery returns the value of ConditionQuery.
-func (s *Task) GetConditionQuery() OptString {
+func (s *TaskRequest) GetConditionQuery() string {
 	return s.ConditionQuery
 }
 
-// GetCreatedAt returns the value of CreatedAt.
-func (s *Task) GetCreatedAt() OptDateTime {
-	return s.CreatedAt
-}
-
-// GetCreatedBy returns the value of CreatedBy.
-func (s *Task) GetCreatedBy() OptUUID {
-	return s.CreatedBy
-}
-
-// SetID sets the value of ID.
-func (s *Task) SetID(val OptUUID) {
-	s.ID = val
+// GetIsPublic returns the value of IsPublic.
+func (s *TaskRequest) GetIsPublic() bool {
+	return s.IsPublic
 }
 
 // SetSiteURL sets the value of SiteURL.
-func (s *Task) SetSiteURL(val OptURI) {
+func (s *TaskRequest) SetSiteURL(val url.URL) {
 	s.SiteURL = val
 }
 
 // SetDurationDay sets the value of DurationDay.
-func (s *Task) SetDurationDay(val OptInt) {
+func (s *TaskRequest) SetDurationDay(val int) {
 	s.DurationDay = val
 }
 
 // SetConditionQuery sets the value of ConditionQuery.
-func (s *Task) SetConditionQuery(val OptString) {
+func (s *TaskRequest) SetConditionQuery(val string) {
 	s.ConditionQuery = val
 }
 
+// SetIsPublic sets the value of IsPublic.
+func (s *TaskRequest) SetIsPublic(val bool) {
+	s.IsPublic = val
+}
+
+// Merged schema.
+// Ref: #/components/schemas/TaskResponse
+type TaskResponse struct {
+	SiteURL        url.URL   `json:"site_url"`
+	DurationDay    int       `json:"duration_day"`
+	ConditionQuery string    `json:"condition_query"`
+	IsPublic       bool      `json:"is_public"`
+	ID             uuid.UUID `json:"id"`
+	CreatedAt      time.Time `json:"created_at"`
+	CreatedBy      uuid.UUID `json:"created_by"`
+	UpdatedAt      time.Time `json:"updated_at"`
+}
+
+// GetSiteURL returns the value of SiteURL.
+func (s *TaskResponse) GetSiteURL() url.URL {
+	return s.SiteURL
+}
+
+// GetDurationDay returns the value of DurationDay.
+func (s *TaskResponse) GetDurationDay() int {
+	return s.DurationDay
+}
+
+// GetConditionQuery returns the value of ConditionQuery.
+func (s *TaskResponse) GetConditionQuery() string {
+	return s.ConditionQuery
+}
+
+// GetIsPublic returns the value of IsPublic.
+func (s *TaskResponse) GetIsPublic() bool {
+	return s.IsPublic
+}
+
+// GetID returns the value of ID.
+func (s *TaskResponse) GetID() uuid.UUID {
+	return s.ID
+}
+
+// GetCreatedAt returns the value of CreatedAt.
+func (s *TaskResponse) GetCreatedAt() time.Time {
+	return s.CreatedAt
+}
+
+// GetCreatedBy returns the value of CreatedBy.
+func (s *TaskResponse) GetCreatedBy() uuid.UUID {
+	return s.CreatedBy
+}
+
+// GetUpdatedAt returns the value of UpdatedAt.
+func (s *TaskResponse) GetUpdatedAt() time.Time {
+	return s.UpdatedAt
+}
+
+// SetSiteURL sets the value of SiteURL.
+func (s *TaskResponse) SetSiteURL(val url.URL) {
+	s.SiteURL = val
+}
+
+// SetDurationDay sets the value of DurationDay.
+func (s *TaskResponse) SetDurationDay(val int) {
+	s.DurationDay = val
+}
+
+// SetConditionQuery sets the value of ConditionQuery.
+func (s *TaskResponse) SetConditionQuery(val string) {
+	s.ConditionQuery = val
+}
+
+// SetIsPublic sets the value of IsPublic.
+func (s *TaskResponse) SetIsPublic(val bool) {
+	s.IsPublic = val
+}
+
+// SetID sets the value of ID.
+func (s *TaskResponse) SetID(val uuid.UUID) {
+	s.ID = val
+}
+
 // SetCreatedAt sets the value of CreatedAt.
-func (s *Task) SetCreatedAt(val OptDateTime) {
+func (s *TaskResponse) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
 }
 
 // SetCreatedBy sets the value of CreatedBy.
-func (s *Task) SetCreatedBy(val OptUUID) {
+func (s *TaskResponse) SetCreatedBy(val uuid.UUID) {
 	s.CreatedBy = val
 }
 
-func (*Task) getTasksTaskIdRes() {}
+// SetUpdatedAt sets the value of UpdatedAt.
+func (s *TaskResponse) SetUpdatedAt(val time.Time) {
+	s.UpdatedAt = val
+}
+
+func (*TaskResponse) getTaskByIDRes() {}

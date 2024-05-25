@@ -23,30 +23,30 @@ import (
 
 // Invoker invokes operations described by OpenAPI v3 specification.
 type Invoker interface {
-	// DeleteTasksTaskId invokes delete-tasks-taskId operation.
+	// CrateTask invokes crate-task operation.
 	//
-	// Your DELETE endpoint.
-	//
-	// DELETE /tasks/{taskId}
-	DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error
-	// GetTasks invokes get-tasks operation.
-	//
-	// Your GET endpoint.
-	//
-	// GET /tasks
-	GetTasks(ctx context.Context) ([]Task, error)
-	// GetTasksTaskId invokes get-tasks-taskId operation.
-	//
-	// Your GET endpoint.
-	//
-	// GET /tasks/{taskId}
-	GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error)
-	// PostTasks invokes post-tasks operation.
-	//
-	// Your POST endpoint.
+	// Create Task.
 	//
 	// POST /tasks
-	PostTasks(ctx context.Context, request OptTask) (*Task, error)
+	CrateTask(ctx context.Context, request OptTaskRequest) error
+	// DeleteTaskByID invokes delete-task-by-id operation.
+	//
+	// Delete Task by ID.
+	//
+	// DELETE /tasks/{taskId}
+	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error
+	// GetTaskByID invokes get-task-by-id operation.
+	//
+	// Get Task by ID.
+	//
+	// GET /tasks/{taskId}
+	GetTaskByID(ctx context.Context, params GetTaskByIDParams) (GetTaskByIDRes, error)
+	// GetTasks invokes get-tasks operation.
+	//
+	// Get Tasks.
+	//
+	// GET /tasks
+	GetTasks(ctx context.Context) ([]TaskResponse, error)
 }
 
 // Client implements OAS client.
@@ -97,19 +97,94 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 	return u
 }
 
-// DeleteTasksTaskId invokes delete-tasks-taskId operation.
+// CrateTask invokes crate-task operation.
 //
-// Your DELETE endpoint.
+// Create Task.
 //
-// DELETE /tasks/{taskId}
-func (c *Client) DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error {
-	_, err := c.sendDeleteTasksTaskId(ctx, params)
+// POST /tasks
+func (c *Client) CrateTask(ctx context.Context, request OptTaskRequest) error {
+	_, err := c.sendCrateTask(ctx, request)
 	return err
 }
 
-func (c *Client) sendDeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) (res *DeleteTasksTaskIdOK, err error) {
+func (c *Client) sendCrateTask(ctx context.Context, request OptTaskRequest) (res *CrateTaskCreated, err error) {
 	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("delete-tasks-taskId"),
+		otelogen.OperationID("crate-task"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/tasks"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "CrateTask",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/tasks"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+	if err := encodeCrateTaskRequest(request, r); err != nil {
+		return res, errors.Wrap(err, "encode request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeCrateTaskResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// DeleteTaskByID invokes delete-task-by-id operation.
+//
+// Delete Task by ID.
+//
+// DELETE /tasks/{taskId}
+func (c *Client) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error {
+	_, err := c.sendDeleteTaskByID(ctx, params)
+	return err
+}
+
+func (c *Client) sendDeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (res *DeleteTaskByIDOK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("delete-task-by-id"),
 		semconv.HTTPMethodKey.String("DELETE"),
 		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
 	}
@@ -126,7 +201,7 @@ func (c *Client) sendDeleteTasksTaskId(ctx context.Context, params DeleteTasksTa
 	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
 
 	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteTasksTaskId",
+	ctx, span := c.cfg.Tracer.Start(ctx, "DeleteTaskByID",
 		trace.WithAttributes(otelAttrs...),
 		clientSpanKind,
 	)
@@ -179,7 +254,97 @@ func (c *Client) sendDeleteTasksTaskId(ctx context.Context, params DeleteTasksTa
 	defer resp.Body.Close()
 
 	stage = "DecodeResponse"
-	result, err := decodeDeleteTasksTaskIdResponse(resp)
+	result, err := decodeDeleteTaskByIDResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// GetTaskByID invokes get-task-by-id operation.
+//
+// Get Task by ID.
+//
+// GET /tasks/{taskId}
+func (c *Client) GetTaskByID(ctx context.Context, params GetTaskByIDParams) (GetTaskByIDRes, error) {
+	res, err := c.sendGetTaskByID(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendGetTaskByID(ctx context.Context, params GetTaskByIDParams) (res GetTaskByIDRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("get-task-by-id"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "GetTaskByID",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [2]string
+	pathParts[0] = "/tasks/"
+	{
+		// Encode "taskId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "taskId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.UUIDToString(params.TaskId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeGetTaskByIDResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}
@@ -189,15 +354,15 @@ func (c *Client) sendDeleteTasksTaskId(ctx context.Context, params DeleteTasksTa
 
 // GetTasks invokes get-tasks operation.
 //
-// Your GET endpoint.
+// Get Tasks.
 //
 // GET /tasks
-func (c *Client) GetTasks(ctx context.Context) ([]Task, error) {
+func (c *Client) GetTasks(ctx context.Context) ([]TaskResponse, error) {
 	res, err := c.sendGetTasks(ctx)
 	return res, err
 }
 
-func (c *Client) sendGetTasks(ctx context.Context) (res []Task, err error) {
+func (c *Client) sendGetTasks(ctx context.Context) (res []TaskResponse, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("get-tasks"),
 		semconv.HTTPMethodKey.String("GET"),
@@ -252,171 +417,6 @@ func (c *Client) sendGetTasks(ctx context.Context) (res []Task, err error) {
 
 	stage = "DecodeResponse"
 	result, err := decodeGetTasksResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// GetTasksTaskId invokes get-tasks-taskId operation.
-//
-// Your GET endpoint.
-//
-// GET /tasks/{taskId}
-func (c *Client) GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (GetTasksTaskIdRes, error) {
-	res, err := c.sendGetTasksTaskId(ctx, params)
-	return res, err
-}
-
-func (c *Client) sendGetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (res GetTasksTaskIdRes, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("get-tasks-taskId"),
-		semconv.HTTPMethodKey.String("GET"),
-		semconv.HTTPRouteKey.String("/tasks/{taskId}"),
-	}
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "GetTasksTaskId",
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [2]string
-	pathParts[0] = "/tasks/"
-	{
-		// Encode "taskId" parameter.
-		e := uri.NewPathEncoder(uri.PathEncoderConfig{
-			Param:   "taskId",
-			Style:   uri.PathStyleSimple,
-			Explode: false,
-		})
-		if err := func() error {
-			return e.EncodeValue(conv.UUIDToString(params.TaskId))
-		}(); err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		encoded, err := e.Result()
-		if err != nil {
-			return res, errors.Wrap(err, "encode path")
-		}
-		pathParts[1] = encoded
-	}
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "GET", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodeGetTasksTaskIdResponse(resp)
-	if err != nil {
-		return res, errors.Wrap(err, "decode response")
-	}
-
-	return result, nil
-}
-
-// PostTasks invokes post-tasks operation.
-//
-// Your POST endpoint.
-//
-// POST /tasks
-func (c *Client) PostTasks(ctx context.Context, request OptTask) (*Task, error) {
-	res, err := c.sendPostTasks(ctx, request)
-	return res, err
-}
-
-func (c *Client) sendPostTasks(ctx context.Context, request OptTask) (res *Task, err error) {
-	otelAttrs := []attribute.KeyValue{
-		otelogen.OperationID("post-tasks"),
-		semconv.HTTPMethodKey.String("POST"),
-		semconv.HTTPRouteKey.String("/tasks"),
-	}
-
-	// Run stopwatch.
-	startTime := time.Now()
-	defer func() {
-		// Use floating point division here for higher precision (instead of Millisecond method).
-		elapsedDuration := time.Since(startTime)
-		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
-	}()
-
-	// Increment request counter.
-	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-
-	// Start a span for this request.
-	ctx, span := c.cfg.Tracer.Start(ctx, "PostTasks",
-		trace.WithAttributes(otelAttrs...),
-		clientSpanKind,
-	)
-	// Track stage for error reporting.
-	var stage string
-	defer func() {
-		if err != nil {
-			span.RecordError(err)
-			span.SetStatus(codes.Error, stage)
-			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
-		}
-		span.End()
-	}()
-
-	stage = "BuildURL"
-	u := uri.Clone(c.requestURL(ctx))
-	var pathParts [1]string
-	pathParts[0] = "/tasks"
-	uri.AddPathParts(u, pathParts[:]...)
-
-	stage = "EncodeRequest"
-	r, err := ht.NewRequest(ctx, "POST", u)
-	if err != nil {
-		return res, errors.Wrap(err, "create request")
-	}
-	if err := encodePostTasksRequest(request, r); err != nil {
-		return res, errors.Wrap(err, "encode request")
-	}
-
-	stage = "SendRequest"
-	resp, err := c.cfg.Client.Do(r)
-	if err != nil {
-		return res, errors.Wrap(err, "do request")
-	}
-	defer resp.Body.Close()
-
-	stage = "DecodeResponse"
-	result, err := decodePostTasksResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

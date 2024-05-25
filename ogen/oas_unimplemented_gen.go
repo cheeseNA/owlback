@@ -13,38 +13,38 @@ type UnimplementedHandler struct{}
 
 var _ Handler = UnimplementedHandler{}
 
-// DeleteTasksTaskId implements delete-tasks-taskId operation.
+// CrateTask implements crate-task operation.
 //
-// Your DELETE endpoint.
+// Create Task.
+//
+// POST /tasks
+func (UnimplementedHandler) CrateTask(ctx context.Context, req OptTaskRequest) error {
+	return ht.ErrNotImplemented
+}
+
+// DeleteTaskByID implements delete-task-by-id operation.
+//
+// Delete Task by ID.
 //
 // DELETE /tasks/{taskId}
-func (UnimplementedHandler) DeleteTasksTaskId(ctx context.Context, params DeleteTasksTaskIdParams) error {
+func (UnimplementedHandler) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error {
 	return ht.ErrNotImplemented
+}
+
+// GetTaskByID implements get-task-by-id operation.
+//
+// Get Task by ID.
+//
+// GET /tasks/{taskId}
+func (UnimplementedHandler) GetTaskByID(ctx context.Context, params GetTaskByIDParams) (r GetTaskByIDRes, _ error) {
+	return r, ht.ErrNotImplemented
 }
 
 // GetTasks implements get-tasks operation.
 //
-// Your GET endpoint.
+// Get Tasks.
 //
 // GET /tasks
-func (UnimplementedHandler) GetTasks(ctx context.Context) (r []Task, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// GetTasksTaskId implements get-tasks-taskId operation.
-//
-// Your GET endpoint.
-//
-// GET /tasks/{taskId}
-func (UnimplementedHandler) GetTasksTaskId(ctx context.Context, params GetTasksTaskIdParams) (r GetTasksTaskIdRes, _ error) {
-	return r, ht.ErrNotImplemented
-}
-
-// PostTasks implements post-tasks operation.
-//
-// Your POST endpoint.
-//
-// POST /tasks
-func (UnimplementedHandler) PostTasks(ctx context.Context, req OptTask) (r *Task, _ error) {
+func (UnimplementedHandler) GetTasks(ctx context.Context) (r []TaskResponse, _ error) {
 	return r, ht.ErrNotImplemented
 }

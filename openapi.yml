@@ -4,12 +4,21 @@ x-stoplight:
 info:
   title: main
   version: '1.0'
+  contact:
+    url: placeholder
+    name: placeholder
+    email: asdf@example.com
+  description: description
+  license:
+    name: None
+    url: 'https://example.com/terms'
+  termsOfService: 'https://example.com/terms'
 servers:
-  - url: 'http://localhost:3000'
+  - url: 'http://localhost:8080'
 paths:
   /tasks:
     get:
-      summary: Your GET endpoint
+      summary: Get Tasks
       tags:
         - task
       responses:
@@ -20,32 +29,31 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Task'
+                  $ref: '#/components/schemas/TaskResponse'
                   x-stoplight:
                     id: esye4wsv4xev0
       operationId: get-tasks
       x-stoplight:
         id: 9q6rfd0mb8rqm
       parameters: []
+      description: Get Tasks
     post:
-      summary: Your POST endpoint
+      summary: Create Task
       tags:
         - task
       responses:
         '201':
           description: Created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Task'
-      operationId: post-tasks
+      operationId: crate-task
       x-stoplight:
-        id: gg89tsl9ogv5q
+        id: v83ljt82n8yl2
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Task'
+              $ref: '#/components/schemas/TaskRequest'
+        description: ''
+      description: Create Task
   '/tasks/{taskId}':
     parameters:
       - schema:
@@ -54,8 +62,9 @@ paths:
         name: taskId
         in: path
         required: true
+        description: Task ID
     get:
-      summary: Your GET endpoint
+      summary: Get Task by ID
       tags:
         - task
       responses:
@@ -64,38 +73,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
+                $ref: '#/components/schemas/TaskResponse'
         '404':
           description: Not Found
-      operationId: get-tasks-taskId
+      operationId: get-task-by-id
       x-stoplight:
         id: d6ogw1upatj59
       parameters: []
+      description: Get Task by ID
     delete:
-      summary: Your DELETE endpoint
+      summary: Delete Task by ID
       tags:
         - task
       responses:
         '200':
           description: OK
-      operationId: delete-tasks-taskId
+      operationId: delete-task-by-id
       x-stoplight:
         id: wheqz161eflx2
       parameters: []
+      description: Delete Task by ID
 components:
   schemas:
-    Task:
-      title: Task
+    TaskCore:
+      title: TaskCore
       x-stoplight:
         id: ka2mtvt3r48ep
       type: object
+      required:
+        - site_url
+        - duration_day
+        - condition_query
+        - is_public
       properties:
-        id:
-          type: string
-          x-stoplight:
-            id: x6952st3sqiw3
-          format: uuid
-          readOnly: true
         site_url:
           type: string
           x-stoplight:
@@ -106,23 +116,65 @@ components:
           type: integer
           x-stoplight:
             id: cf4tf4eq87fev
-          minimum: 0
-          exclusiveMinimum: true
+          minimum: 1
         condition_query:
           type: string
           x-stoplight:
             id: rdr3rv3qtyyey
-        created_at:
-          type: string
+        is_public:
+          type: boolean
           x-stoplight:
-            id: ix5a27wonb2qq
-          format: date-time
-          readOnly: true
-        created_by:
-          type: string
+            id: bqyb42m4ln87o
+      description: ''
+    TaskRequest:
+      title: TaskRequest
+      x-stoplight:
+        id: qrvfcxh96beae
+      allOf:
+        - $ref: '#/components/schemas/TaskCore'
+      description: ''
+    TaskResponse:
+      title: TaskResponse
+      x-stoplight:
+        id: y3molyyrjkysg
+      allOf:
+        - $ref: '#/components/schemas/TaskCore'
+        - type: object
           x-stoplight:
-            id: 9idul0m1r4uyy
-          format: uuid
-          readOnly: true
+            id: jonqvnq2o336n
+          required:
+            - id
+            - created_at
+            - created_by
+            - updated_at
+          properties:
+            id:
+              type: string
+              x-stoplight:
+                id: nejingc8829rp
+              format: uuid
+              readOnly: true
+            created_at:
+              type: string
+              x-stoplight:
+                id: 9yt0u7yv8pkxa
+              format: date-time
+              readOnly: true
+            created_by:
+              type: string
+              x-stoplight:
+                id: hw98mzufjrgxa
+              format: uuid
+              readOnly: true
+            updated_at:
+              type: string
+              x-stoplight:
+                id: r36pi4dy0p6wh
+              format: date-time
+              readOnly: true
+      description: ''
+  requestBodies: {}
+  responses: {}
 tags:
   - name: task
+    description: task

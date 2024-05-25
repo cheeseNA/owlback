@@ -16,12 +16,13 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-// DeleteTasksTaskIdParams is parameters of delete-tasks-taskId operation.
-type DeleteTasksTaskIdParams struct {
+// DeleteTaskByIDParams is parameters of delete-task-by-id operation.
+type DeleteTaskByIDParams struct {
+	// Task ID.
 	TaskId uuid.UUID
 }
 
-func unpackDeleteTasksTaskIdParams(packed middleware.Parameters) (params DeleteTasksTaskIdParams) {
+func unpackDeleteTaskByIDParams(packed middleware.Parameters) (params DeleteTaskByIDParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "taskId",
@@ -32,7 +33,7 @@ func unpackDeleteTasksTaskIdParams(packed middleware.Parameters) (params DeleteT
 	return params
 }
 
-func decodeDeleteTasksTaskIdParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteTasksTaskIdParams, _ error) {
+func decodeDeleteTaskByIDParams(args [1]string, argsEscaped bool, r *http.Request) (params DeleteTaskByIDParams, _ error) {
 	// Decode path: taskId.
 	if err := func() error {
 		param := args[0]
@@ -81,12 +82,13 @@ func decodeDeleteTasksTaskIdParams(args [1]string, argsEscaped bool, r *http.Req
 	return params, nil
 }
 
-// GetTasksTaskIdParams is parameters of get-tasks-taskId operation.
-type GetTasksTaskIdParams struct {
+// GetTaskByIDParams is parameters of get-task-by-id operation.
+type GetTaskByIDParams struct {
+	// Task ID.
 	TaskId uuid.UUID
 }
 
-func unpackGetTasksTaskIdParams(packed middleware.Parameters) (params GetTasksTaskIdParams) {
+func unpackGetTaskByIDParams(packed middleware.Parameters) (params GetTaskByIDParams) {
 	{
 		key := middleware.ParameterKey{
 			Name: "taskId",
@@ -97,7 +99,7 @@ func unpackGetTasksTaskIdParams(packed middleware.Parameters) (params GetTasksTa
 	return params
 }
 
-func decodeGetTasksTaskIdParams(args [1]string, argsEscaped bool, r *http.Request) (params GetTasksTaskIdParams, _ error) {
+func decodeGetTaskByIDParams(args [1]string, argsEscaped bool, r *http.Request) (params GetTaskByIDParams, _ error) {
 	// Decode path: taskId.
 	if err := func() error {
 		param := args[0]

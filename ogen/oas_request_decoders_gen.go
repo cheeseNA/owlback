@@ -15,8 +15,8 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func (s *Server) decodePostTasksRequest(r *http.Request) (
-	req OptTask,
+func (s *Server) decodeCrateTaskRequest(r *http.Request) (
+	req OptTaskRequest,
 	close func() error,
 	rerr error,
 ) {
@@ -58,7 +58,7 @@ func (s *Server) decodePostTasksRequest(r *http.Request) (
 
 		d := jx.DecodeBytes(buf)
 
-		var request OptTask
+		var request OptTaskRequest
 		if err := func() error {
 			request.Reset()
 			if err := request.Decode(d); err != nil {
