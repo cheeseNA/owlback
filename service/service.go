@@ -2,54 +2,82 @@ package service
 
 import (
 	"context"
-	ogen "github.com/cheeseNA/owlback/ogen"
+	"fmt"
+	"github.com/cheeseNA/owlback/ogen"
 	"github.com/cheeseNA/owlback/repository"
-	"github.com/google/uuid"
-	"github.com/ogen-go/ogen/http"
 	"net/url"
-	"sync"
 )
 
 type Service struct {
-	tasks map[uuid.UUID]ogen.Task
-	repo  repository.ITaskRepository
-	mux   sync.Mutex
+	repo repository.ITaskRepository
 }
 
 func NewService(repo repository.ITaskRepository) *Service {
 	return &Service{
-		tasks: map[uuid.UUID]ogen.Task{},
-		repo:  repo,
+		repo: repo,
 	}
 }
 
-func (s *Service) AddTask(ctx context.Context, task *ogen.Task) (*ogen.Task, error) {
-	err := s.repo.AddTask(repository.Task{
-		ID:           uuid.New(),
-		SiteURL:      task.SiteURL.String(),
-		Condition:    task.Condition,
-		DurationDays: task.DurationDay,
-	})
+func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) error {
+	taskReq, ok := req.Get()
+	if !ok {
+		return fmt.Errorf("invalid request")
+	}
+	task := repository.Task{
+		SiteURL:        taskReq.SiteURL.String(),
+		ConditionQuery: taskReq.ConditionQuery,
+		DurationDay:    taskReq.DurationDay,
+		IsPublic:       taskReq.IsPublic,
+	}
+	return s.repo.CreateTask(task)
+}
+
+func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDParams) error {
+	return s.repo.DeleteTaskByID(params.TaskId)
+}
+
+func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams) (api.GetTaskByIDRes, error) {
+	task, err := s.repo.GetTaskByID(params.TaskId)
+	if err != nil {
+		return &api.GetTaskByIDNotFound{}, err
+	}
+	siteUrl, err := url.Parse(task.SiteURL)
 	if err != nil {
 		return nil, err
 	}
-	return task, nil
+	return &api.TaskResponse{
+		SiteURL:        *siteUrl,
+		ConditionQuery: task.ConditionQuery,
+		DurationDay:    task.DurationDay,
+		IsPublic:       task.IsPublic,
+		ID:             task.ID,
+		CreatedAt:      task.CreatedAt,
+		CreatedBy:      task.CreatedBy,
+		UpdatedAt:      task.UpdatedAt,
+	}, nil
 }
 
-func (s *Service) GetTaskById(ctx context.Context, params ogen.GetTaskByIdParams) (ogen.GetTaskByIdRes, error) {
-	task, err := s.repo.GetTaskById(params.TaskId)
+func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
+	tasks, err := s.repo.GetTasks()
 	if err != nil {
-		return &ogen.GetTaskByIdNotFound{}, err
+		return nil, err
 	}
-	retTask := ogen.Task{
-		ID:          ogen.NewOptUUID(task.ID),
-		SiteURL:     url.URL{Path: task.SiteURL},
-		Condition:   task.Condition,
-		DurationDay: task.DurationDays,
+	res := make([]api.TaskResponse, len(tasks))
+	for i, task := range tasks {
+		siteUrl, err := url.Parse(task.SiteURL)
+		if err != nil {
+			return nil, err
+		}
+		res[i] = api.TaskResponse{
+			SiteURL:        *siteUrl,
+			ConditionQuery: task.ConditionQuery,
+			DurationDay:    task.DurationDay,
+			IsPublic:       task.IsPublic,
+			ID:             task.ID,
+			CreatedAt:      task.CreatedAt,
+			CreatedBy:      task.CreatedBy,
+			UpdatedAt:      task.UpdatedAt,
+		}
 	}
-	return &retTask, nil
-}
-
-func (s *Service) UpdateTask(ctx context.Context, params ogen.UpdateTaskParams) error {
-	return http.ErrNotImplemented
+	return res, nil
 }
