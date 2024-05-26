@@ -49,56 +49,92 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/tasks"
+		case '/': // Prefix: "/"
 			origElem := elem
-			if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
+			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				switch r.Method {
-				case "GET":
-					s.handleGetTasksRequest([0]string{}, elemIsEscaped, w, r)
-				case "POST":
-					s.handleCrateTaskRequest([0]string{}, elemIsEscaped, w, r)
-				default:
-					s.notAllowed(w, r, "GET,POST")
-				}
-
-				return
+				break
 			}
 			switch elem[0] {
-			case '/': // Prefix: "/"
+			case 'h': // Prefix: "healthz"
 				origElem := elem
-				if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+				if l := len("healthz"); len(elem) >= l && elem[0:l] == "healthz" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
-				// Param: "taskId"
-				// Leaf parameter
-				args[0] = elem
-				elem = ""
-
 				if len(elem) == 0 {
 					// Leaf node.
 					switch r.Method {
-					case "DELETE":
-						s.handleDeleteTaskByIDRequest([1]string{
-							args[0],
-						}, elemIsEscaped, w, r)
 					case "GET":
-						s.handleGetTaskByIDRequest([1]string{
-							args[0],
-						}, elemIsEscaped, w, r)
+						s.handleHealthzRequest([0]string{}, elemIsEscaped, w, r)
 					default:
-						s.notAllowed(w, r, "DELETE,GET")
+						s.notAllowed(w, r, "GET")
 					}
 
 					return
+				}
+
+				elem = origElem
+			case 't': // Prefix: "tasks"
+				origElem := elem
+				if l := len("tasks"); len(elem) >= l && elem[0:l] == "tasks" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch r.Method {
+					case "GET":
+						s.handleGetTasksRequest([0]string{}, elemIsEscaped, w, r)
+					case "POST":
+						s.handleCrateTaskRequest([0]string{}, elemIsEscaped, w, r)
+					default:
+						s.notAllowed(w, r, "GET,POST")
+					}
+
+					return
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/"
+					origElem := elem
+					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					// Param: "taskId"
+					// Leaf parameter
+					args[0] = elem
+					elem = ""
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "DELETE":
+							s.handleDeleteTaskByIDRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
+						case "GET":
+							s.handleGetTaskByIDRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "DELETE,GET")
+						}
+
+						return
+					}
+
+					elem = origElem
 				}
 
 				elem = origElem
@@ -185,73 +221,113 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 			break
 		}
 		switch elem[0] {
-		case '/': // Prefix: "/tasks"
+		case '/': // Prefix: "/"
 			origElem := elem
-			if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
+			if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
 				elem = elem[l:]
 			} else {
 				break
 			}
 
 			if len(elem) == 0 {
-				switch method {
-				case "GET":
-					r.name = "GetTasks"
-					r.summary = "Get Tasks"
-					r.operationID = "get-tasks"
-					r.pathPattern = "/tasks"
-					r.args = args
-					r.count = 0
-					return r, true
-				case "POST":
-					r.name = "CrateTask"
-					r.summary = "Create Task"
-					r.operationID = "crate-task"
-					r.pathPattern = "/tasks"
-					r.args = args
-					r.count = 0
-					return r, true
-				default:
-					return
-				}
+				break
 			}
 			switch elem[0] {
-			case '/': // Prefix: "/"
+			case 'h': // Prefix: "healthz"
 				origElem := elem
-				if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+				if l := len("healthz"); len(elem) >= l && elem[0:l] == "healthz" {
 					elem = elem[l:]
 				} else {
 					break
 				}
 
-				// Param: "taskId"
-				// Leaf parameter
-				args[0] = elem
-				elem = ""
-
 				if len(elem) == 0 {
 					switch method {
-					case "DELETE":
-						// Leaf: DeleteTaskByID
-						r.name = "DeleteTaskByID"
-						r.summary = "Delete Task by ID"
-						r.operationID = "delete-task-by-id"
-						r.pathPattern = "/tasks/{taskId}"
-						r.args = args
-						r.count = 1
-						return r, true
 					case "GET":
-						// Leaf: GetTaskByID
-						r.name = "GetTaskByID"
-						r.summary = "Get Task by ID"
-						r.operationID = "get-task-by-id"
-						r.pathPattern = "/tasks/{taskId}"
+						// Leaf: Healthz
+						r.name = "Healthz"
+						r.summary = "healthz"
+						r.operationID = "healthz"
+						r.pathPattern = "/healthz"
 						r.args = args
-						r.count = 1
+						r.count = 0
 						return r, true
 					default:
 						return
 					}
+				}
+
+				elem = origElem
+			case 't': // Prefix: "tasks"
+				origElem := elem
+				if l := len("tasks"); len(elem) >= l && elem[0:l] == "tasks" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					switch method {
+					case "GET":
+						r.name = "GetTasks"
+						r.summary = "Get Tasks"
+						r.operationID = "get-tasks"
+						r.pathPattern = "/tasks"
+						r.args = args
+						r.count = 0
+						return r, true
+					case "POST":
+						r.name = "CrateTask"
+						r.summary = "Create Task"
+						r.operationID = "crate-task"
+						r.pathPattern = "/tasks"
+						r.args = args
+						r.count = 0
+						return r, true
+					default:
+						return
+					}
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/"
+					origElem := elem
+					if l := len("/"); len(elem) >= l && elem[0:l] == "/" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					// Param: "taskId"
+					// Leaf parameter
+					args[0] = elem
+					elem = ""
+
+					if len(elem) == 0 {
+						switch method {
+						case "DELETE":
+							// Leaf: DeleteTaskByID
+							r.name = "DeleteTaskByID"
+							r.summary = "Delete Task by ID"
+							r.operationID = "delete-task-by-id"
+							r.pathPattern = "/tasks/{taskId}"
+							r.args = args
+							r.count = 1
+							return r, true
+						case "GET":
+							// Leaf: GetTaskByID
+							r.name = "GetTaskByID"
+							r.summary = "Get Task by ID"
+							r.operationID = "get-task-by-id"
+							r.pathPattern = "/tasks/{taskId}"
+							r.args = args
+							r.count = 1
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
 				}
 
 				elem = origElem

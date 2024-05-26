@@ -160,3 +160,12 @@ func decodeGetTasksResponse(resp *http.Response) (res []TaskResponse, _ error) {
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
+
+func decodeHealthzResponse(resp *http.Response) (res *HealthzOK, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &HealthzOK{}, nil
+	}
+	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+}

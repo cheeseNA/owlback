@@ -47,6 +47,12 @@ type Invoker interface {
 	//
 	// GET /tasks
 	GetTasks(ctx context.Context) ([]TaskResponse, error)
+	// Healthz invokes healthz operation.
+	//
+	// Get health state.
+	//
+	// GET /healthz
+	Healthz(ctx context.Context) error
 }
 
 // Client implements OAS client.
@@ -417,6 +423,78 @@ func (c *Client) sendGetTasks(ctx context.Context) (res []TaskResponse, err erro
 
 	stage = "DecodeResponse"
 	result, err := decodeGetTasksResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// Healthz invokes healthz operation.
+//
+// Get health state.
+//
+// GET /healthz
+func (c *Client) Healthz(ctx context.Context) error {
+	_, err := c.sendHealthz(ctx)
+	return err
+}
+
+func (c *Client) sendHealthz(ctx context.Context) (res *HealthzOK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("healthz"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/healthz"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "Healthz",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/healthz"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeHealthzResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

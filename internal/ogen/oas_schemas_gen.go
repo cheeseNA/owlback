@@ -20,6 +20,9 @@ type GetTaskByIDNotFound struct{}
 
 func (*GetTaskByIDNotFound) getTaskByIDRes() {}
 
+// HealthzOK is response for Healthz operation.
+type HealthzOK struct{}
+
 // NewOptTaskRequest returns new OptTaskRequest with value set to v.
 func NewOptTaskRequest(v TaskRequest) OptTaskRequest {
 	return OptTaskRequest{

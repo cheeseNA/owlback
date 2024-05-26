@@ -32,6 +32,12 @@ type Handler interface {
 	//
 	// GET /tasks
 	GetTasks(ctx context.Context) ([]TaskResponse, error)
+	// Healthz implements healthz operation.
+	//
+	// Get health state.
+	//
+	// GET /healthz
+	Healthz(ctx context.Context) error
 }
 
 // Server implements http server based on OpenAPI v3 specification and

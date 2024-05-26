@@ -81,3 +81,7 @@ func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
 	}
 	return res, nil
 }
+
+func (s *Service) Healthz(ctx context.Context) error {
+	return nil
+}

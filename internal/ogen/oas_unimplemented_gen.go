@@ -48,3 +48,12 @@ func (UnimplementedHandler) GetTaskByID(ctx context.Context, params GetTaskByIDP
 func (UnimplementedHandler) GetTasks(ctx context.Context) (r []TaskResponse, _ error) {
 	return r, ht.ErrNotImplemented
 }
+
+// Healthz implements healthz operation.
+//
+// Get health state.
+//
+// GET /healthz
+func (UnimplementedHandler) Healthz(ctx context.Context) error {
+	return ht.ErrNotImplemented
+}

@@ -93,6 +93,17 @@ paths:
         id: wheqz161eflx2
       parameters: []
       description: Delete Task by ID
+  /healthz:
+    get:
+      summary: healthz
+      tags: []
+      responses:
+        '200':
+          description: OK
+      operationId: healthz
+      x-stoplight:
+        id: a63dtfp2amtx8
+      description: Get health state
 components:
   schemas:
     TaskCore:
