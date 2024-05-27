@@ -5,6 +5,7 @@ import (
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"github.com/cheeseNA/owlback/internal/service"
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -43,7 +44,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := http.ListenAndServe(":8080", srv); err != nil {
+
+	AllowedOrigins := []string{}
+	if cfg.RunningEnvironment == config.Local {
+		AllowedOrigins = append(AllowedOrigins, "http://localhost:3000")
+	} else if cfg.RunningEnvironment == config.Production {
+		AllowedOrigins = append(AllowedOrigins, "https://crawl-owl.vercel.app")
+	}
+	c := cors.New(cors.Options{
+		AllowedOrigins:   AllowedOrigins,
+		AllowCredentials: true,
+		// Enable Debugging for testing, consider disabling in production
+		Debug: cfg.RunningEnvironment == config.Local,
+	})
+	// Insert the middleware
+	handler := c.Handler(srv)
+
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatal(err)
 	}
 }
