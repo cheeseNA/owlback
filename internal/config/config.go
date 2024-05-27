@@ -5,8 +5,16 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+type RunningEnvironment string
+
+const (
+	Local      RunningEnvironment = "local"
+	Production RunningEnvironment = "production"
+)
+
 type Config struct {
-	PostgresConnectionString string `split_words:"true" validate:"required"`
+	PostgresConnectionString string             `split_words:"true" validate:"required"`
+	RunningEnvironment       RunningEnvironment `split_words:"true" validate:"required"`
 }
 
 func LoadConfig() (*Config, error) {

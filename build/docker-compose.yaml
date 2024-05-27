@@ -5,6 +5,7 @@ services:
       dockerfile: build/Dockerfile
     environment:
       POSTGRES_CONNECTION_STRING: postgres://postgres:password@pg:5432/postgres
+      RUNNING_ENVIRONMENT: "local"
     ports:
       - 8080:8080
     depends_on:
