@@ -9,5 +9,6 @@ create table
                      duration_day bigint not null,
                      is_public boolean not null,
                      deleted_at timestamp with time zone null,
+                     is_paused boolean not null,
                      constraint tasks_pkey primary key (id)
 ) tablespace pg_default;

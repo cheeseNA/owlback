@@ -25,7 +25,7 @@ func NewTaskRepository(db *gorm.DB, logger *zap.Logger) *TaskRepository {
 func (r *TaskRepository) CreateTask(task Task) error {
 	r.logger.Info("Creating task", zap.Any("task", task))
 	task.CreatedBy = uuid.New()
-	return r.db.Omit("ID").Create(&task).Error
+	return r.db.Omit("ID", "LastCrawledAt", "LastContent").Create(&task).Error
 }
 
 func (r *TaskRepository) DeleteTaskByID(id uuid.UUID) error {

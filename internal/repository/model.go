@@ -15,5 +15,8 @@ type Task struct {
 	ConditionQuery string    `gorm:"type:text;not null"`
 	DurationDay    int       `gorm:"not null"`
 	IsPublic       bool      `gorm:"not null"`
+	LastCrawledAt  *time.Time
+	LastContent    *string `gorm:"type:text"`
+	IsPaused       bool    `gorm:"not null"`
 	DeletedAt      gorm.DeletedAt
 }

@@ -23,6 +23,52 @@ func (*GetTaskByIDNotFound) getTaskByIDRes() {}
 // HealthzOK is response for Healthz operation.
 type HealthzOK struct{}
 
+// NewOptDateTime returns new OptDateTime with value set to v.
+func NewOptDateTime(v time.Time) OptDateTime {
+	return OptDateTime{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptDateTime is optional time.Time.
+type OptDateTime struct {
+	Value time.Time
+	Set   bool
+}
+
+// IsSet returns true if OptDateTime was set.
+func (o OptDateTime) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptDateTime) Reset() {
+	var v time.Time
+	o.Value = v
+	o.Set = false
+}
+
+// SetTo sets value to v.
+func (o *OptDateTime) SetTo(v time.Time) {
+	o.Set = true
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptDateTime) Get() (v time.Time, ok bool) {
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptDateTime) Or(d time.Time) time.Time {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
 // NewOptTaskRequest returns new OptTaskRequest with value set to v.
 func NewOptTaskRequest(v TaskRequest) OptTaskRequest {
 	return OptTaskRequest{
@@ -120,14 +166,16 @@ func (s *TaskRequest) SetIsPublic(val bool) {
 // Merged schema.
 // Ref: #/components/schemas/TaskResponse
 type TaskResponse struct {
-	SiteURL        url.URL   `json:"site_url"`
-	DurationDay    int       `json:"duration_day"`
-	ConditionQuery string    `json:"condition_query"`
-	IsPublic       bool      `json:"is_public"`
-	ID             uuid.UUID `json:"id"`
-	CreatedAt      time.Time `json:"created_at"`
-	CreatedBy      uuid.UUID `json:"created_by"`
-	UpdatedAt      time.Time `json:"updated_at"`
+	SiteURL        url.URL     `json:"site_url"`
+	DurationDay    int         `json:"duration_day"`
+	ConditionQuery string      `json:"condition_query"`
+	IsPublic       bool        `json:"is_public"`
+	ID             uuid.UUID   `json:"id"`
+	CreatedAt      time.Time   `json:"created_at"`
+	CreatedBy      uuid.UUID   `json:"created_by"`
+	UpdatedAt      time.Time   `json:"updated_at"`
+	LastCrawledAt  OptDateTime `json:"last_crawled_at"`
+	IsPaused       bool        `json:"is_paused"`
 }
 
 // GetSiteURL returns the value of SiteURL.
@@ -170,6 +218,16 @@ func (s *TaskResponse) GetUpdatedAt() time.Time {
 	return s.UpdatedAt
 }
 
+// GetLastCrawledAt returns the value of LastCrawledAt.
+func (s *TaskResponse) GetLastCrawledAt() OptDateTime {
+	return s.LastCrawledAt
+}
+
+// GetIsPaused returns the value of IsPaused.
+func (s *TaskResponse) GetIsPaused() bool {
+	return s.IsPaused
+}
+
 // SetSiteURL sets the value of SiteURL.
 func (s *TaskResponse) SetSiteURL(val url.URL) {
 	s.SiteURL = val
@@ -208,6 +266,16 @@ func (s *TaskResponse) SetCreatedBy(val uuid.UUID) {
 // SetUpdatedAt sets the value of UpdatedAt.
 func (s *TaskResponse) SetUpdatedAt(val time.Time) {
 	s.UpdatedAt = val
+}
+
+// SetLastCrawledAt sets the value of LastCrawledAt.
+func (s *TaskResponse) SetLastCrawledAt(val OptDateTime) {
+	s.LastCrawledAt = val
+}
+
+// SetIsPaused sets the value of IsPaused.
+func (s *TaskResponse) SetIsPaused(val bool) {
+	s.IsPaused = val
 }
 
 func (*TaskResponse) getTaskByIDRes() {}

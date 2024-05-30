@@ -5,6 +5,7 @@ package api
 import (
 	"math/bits"
 	"strconv"
+	"time"
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
@@ -12,6 +13,41 @@ import (
 	"github.com/ogen-go/ogen/json"
 	"github.com/ogen-go/ogen/validate"
 )
+
+// Encode encodes time.Time as json.
+func (o OptDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
+	if !o.Set {
+		return
+	}
+	format(e, o.Value)
+}
+
+// Decode decodes time.Time from json.
+func (o *OptDateTime) Decode(d *jx.Decoder, format func(*jx.Decoder) (time.Time, error)) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptDateTime to nil")
+	}
+	o.Set = true
+	v, err := format(d)
+	if err != nil {
+		return err
+	}
+	o.Value = v
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptDateTime) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e, json.EncodeDateTime)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptDateTime) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d, json.DecodeDateTime)
+}
 
 // Encode encodes TaskRequest as json.
 func (o OptTaskRequest) Encode(e *jx.Encoder) {
@@ -234,9 +270,19 @@ func (s *TaskResponse) encodeFields(e *jx.Encoder) {
 		e.FieldStart("updated_at")
 		json.EncodeDateTime(e, s.UpdatedAt)
 	}
+	{
+		if s.LastCrawledAt.Set {
+			e.FieldStart("last_crawled_at")
+			s.LastCrawledAt.Encode(e, json.EncodeDateTime)
+		}
+	}
+	{
+		e.FieldStart("is_paused")
+		e.Bool(s.IsPaused)
+	}
 }
 
-var jsonFieldsNameOfTaskResponse = [8]string{
+var jsonFieldsNameOfTaskResponse = [10]string{
 	0: "site_url",
 	1: "duration_day",
 	2: "condition_query",
@@ -245,6 +291,8 @@ var jsonFieldsNameOfTaskResponse = [8]string{
 	5: "created_at",
 	6: "created_by",
 	7: "updated_at",
+	8: "last_crawled_at",
+	9: "is_paused",
 }
 
 // Decode decodes TaskResponse from json.
@@ -252,7 +300,7 @@ func (s *TaskResponse) Decode(d *jx.Decoder) error {
 	if s == nil {
 		return errors.New("invalid: unable to decode TaskResponse to nil")
 	}
-	var requiredBitSet [1]uint8
+	var requiredBitSet [2]uint8
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
@@ -352,6 +400,28 @@ func (s *TaskResponse) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"updated_at\"")
 			}
+		case "last_crawled_at":
+			if err := func() error {
+				s.LastCrawledAt.Reset()
+				if err := s.LastCrawledAt.Decode(d, json.DecodeDateTime); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"last_crawled_at\"")
+			}
+		case "is_paused":
+			requiredBitSet[1] |= 1 << 1
+			if err := func() error {
+				v, err := d.Bool()
+				s.IsPaused = bool(v)
+				if err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"is_paused\"")
+			}
 		default:
 			return d.Skip()
 		}
@@ -361,8 +431,9 @@ func (s *TaskResponse) Decode(d *jx.Decoder) error {
 	}
 	// Validate required fields.
 	var failures []validate.FieldError
-	for i, mask := range [1]uint8{
+	for i, mask := range [2]uint8{
 		0b11111111,
+		0b00000010,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

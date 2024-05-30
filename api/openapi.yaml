@@ -158,6 +158,7 @@ components:
             - created_at
             - created_by
             - updated_at
+            - is_paused
           properties:
             id:
               type: string
@@ -183,7 +184,17 @@ components:
                 id: r36pi4dy0p6wh
               format: date-time
               readOnly: true
-      description: ''
+            last_crawled_at:
+              type: string
+              x-stoplight:
+                id: jjrg7z88au3if
+              format: date-time
+              readOnly: true
+            is_paused:
+              type: boolean
+              x-stoplight:
+                id: k4blwxddb03ro
+              readOnly: true
   requestBodies: {}
   responses: {}
 tags:
