@@ -57,6 +57,9 @@ func (s *FuncService) CallFunc(req Request) (res Response, err error) {
 			err = errors.Join(err, defErr)
 		}
 	}()
+	if httpRes.StatusCode > 299 {
+		return Response{}, errors.New("unexpected status code")
+	}
 	resBody, err := io.ReadAll(httpRes.Body)
 	if err != nil {
 		return Response{}, err

@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cheeseNA/owlback/internal/funccall"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"go.uber.org/zap"
 	"net/url"
+	"time"
 )
 
 type Service struct {
@@ -110,5 +112,37 @@ func (s *Service) Healthz(ctx context.Context) error {
 }
 
 func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
-	return nil
+	tasks, err := s.repo.GetTasksToCrawl()
+	s.logger.Info("Crawling tasks")
+	if err != nil {
+		return err
+	}
+	for _, task := range tasks {
+		s.logger.Info("Crawling task", zap.Any("task", task))
+		lastContent := ""
+		if task.LastContent != nil {
+			lastContent = *task.LastContent
+		}
+		now := time.Now()
+		req := funccall.Request{
+			Url:         task.SiteURL,
+			OpenaiKey:   "sk-proj-md1SX1jfiAVlxu7oMH3FT3BlbkFJbFtePRkUFXMkoC7VGDWf", // TODO: add openai key to model
+			Query:       task.ConditionQuery,
+			LastContent: lastContent,
+			IsStrict:    false, // TODO: add strict to model
+		}
+		res, e := s.funcService.CallFunc(req)
+		if e != nil {
+			s.logger.Error("Failed to call function", zap.Error(e))
+			err = errors.Join(err, e)
+			continue
+		}
+		if *res.IsTriggered {
+			s.logger.Info("Triggered", zap.Any("task", task))
+			// TODO: send notification
+		}
+		// TODO: lock & transaction
+		err = errors.Join(err, s.repo.UpdateTask(task, repository.Task{LastContent: res.NewContent, LastCrawledAt: &now}))
+	}
+	return err
 }

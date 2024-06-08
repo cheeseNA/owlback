@@ -4,13 +4,16 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ITaskRepository interface {
-	CreateTask(task Task) error
-	DeleteTaskByID(id uuid.UUID) error
-	GetTaskByID(id uuid.UUID) (Task, error)
+	CreateTask(Task) error
+	DeleteTaskByID(uuid.UUID) error
+	GetTaskByID(uuid.UUID) (Task, error)
+	UpdateTask(Task, Task) error
 	GetTasks() ([]Task, error)
+	GetTasksToCrawl() ([]Task, error)
 }
 
 type TaskRepository struct {
@@ -44,9 +47,22 @@ func (r *TaskRepository) GetTaskByID(id uuid.UUID) (Task, error) {
 	return task, err
 }
 
+func (r *TaskRepository) UpdateTask(targetTask Task, updateTask Task) error {
+	r.logger.Info("Updating task", zap.Any("id", targetTask.ID))
+	return r.db.Model(&targetTask).Updates(updateTask).Error
+}
+
 func (r *TaskRepository) GetTasks() ([]Task, error) {
 	r.logger.Info("Getting tasks")
 	var tasks []Task
 	err := r.db.Find(&tasks).Error
+	return tasks, err
+}
+
+func (r *TaskRepository) GetTasksToCrawl() ([]Task, error) {
+	r.logger.Info("Getting tasks to crawl")
+	var tasks []Task
+	currentTime := time.Now()
+	err := r.db.Where("last_crawled_at + duration_day * interval '1 day' < ?", currentTime).Or("last_crawled_at IS NULL").Find(&tasks).Error
 	return tasks, err
 }
