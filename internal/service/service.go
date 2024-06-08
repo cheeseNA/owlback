@@ -3,18 +3,24 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/cheeseNA/owlback/internal/funccall"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
+	"go.uber.org/zap"
 	"net/url"
 )
 
 type Service struct {
-	repo repository.ITaskRepository
+	repo        repository.ITaskRepository
+	funcService funccall.IFuncService
+	logger      *zap.Logger // TODO: replace with context logger interface
 }
 
-func NewService(repo repository.ITaskRepository) *Service {
+func NewService(repo repository.ITaskRepository, funcService funccall.IFuncService, logger *zap.Logger) *Service {
 	return &Service{
-		repo: repo,
+		repo:        repo,
+		funcService: funcService,
+		logger:      logger,
 	}
 }
 

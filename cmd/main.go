@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/cheeseNA/owlback/internal/config"
+	"github.com/cheeseNA/owlback/internal/funccall"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"github.com/cheeseNA/owlback/internal/service"
@@ -39,7 +40,11 @@ func main() {
 	}
 
 	repo := repository.NewTaskRepository(db, logger)
-	s := service.NewService(repo)
+	funcService, err := funccall.NewFuncService()
+	if err != nil {
+		panic(err)
+	}
+	s := service.NewService(repo, funcService, logger)
 	srv, err := api.NewServer(s)
 	if err != nil {
 		log.Fatal(err)
