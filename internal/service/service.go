@@ -102,3 +102,7 @@ func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
 func (s *Service) Healthz(ctx context.Context) error {
 	return nil
 }
+
+func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
+	return nil
+}

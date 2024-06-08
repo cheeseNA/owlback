@@ -104,6 +104,18 @@ paths:
       x-stoplight:
         id: a63dtfp2amtx8
       description: Get health state
+  /cron-wrpouiqjflsadkmxcvz780923:
+    post:
+      summary: Execute crawl
+      tags:
+        - cron
+      responses:
+        '200':
+          description: OK
+      operationId: post-cron-wrpouiqjflsadkmxcvz780923
+      x-stoplight:
+        id: rwufl0c8ez3bb
+      description: Execute crawl
 components:
   schemas:
     TaskCore:
@@ -200,3 +212,5 @@ components:
 tags:
   - name: task
     description: task
+  - name: cron
+    description: cron

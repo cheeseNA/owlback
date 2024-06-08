@@ -57,3 +57,12 @@ func (UnimplementedHandler) GetTasks(ctx context.Context) (r []TaskResponse, _ e
 func (UnimplementedHandler) Healthz(ctx context.Context) error {
 	return ht.ErrNotImplemented
 }
+
+// PostCronWrpouiqjflsadkmxcvz780923 implements post-cron-wrpouiqjflsadkmxcvz780923 operation.
+//
+// Execute crawl.
+//
+// POST /cron-wrpouiqjflsadkmxcvz780923
+func (UnimplementedHandler) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
+	return ht.ErrNotImplemented
+}

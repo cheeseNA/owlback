@@ -169,3 +169,12 @@ func decodeHealthzResponse(resp *http.Response) (res *HealthzOK, _ error) {
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
+
+func decodePostCronWrpouiqjflsadkmxcvz780923Response(resp *http.Response) (res *PostCronWrpouiqjflsadkmxcvz780923OK, _ error) {
+	switch resp.StatusCode {
+	case 200:
+		// Code 200.
+		return &PostCronWrpouiqjflsadkmxcvz780923OK{}, nil
+	}
+	return res, validate.UnexpectedStatusCode(resp.StatusCode)
+}

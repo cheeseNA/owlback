@@ -53,6 +53,12 @@ type Invoker interface {
 	//
 	// GET /healthz
 	Healthz(ctx context.Context) error
+	// PostCronWrpouiqjflsadkmxcvz780923 invokes post-cron-wrpouiqjflsadkmxcvz780923 operation.
+	//
+	// Execute crawl.
+	//
+	// POST /cron-wrpouiqjflsadkmxcvz780923
+	PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error
 }
 
 // Client implements OAS client.
@@ -495,6 +501,78 @@ func (c *Client) sendHealthz(ctx context.Context) (res *HealthzOK, err error) {
 
 	stage = "DecodeResponse"
 	result, err := decodeHealthzResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// PostCronWrpouiqjflsadkmxcvz780923 invokes post-cron-wrpouiqjflsadkmxcvz780923 operation.
+//
+// Execute crawl.
+//
+// POST /cron-wrpouiqjflsadkmxcvz780923
+func (c *Client) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
+	_, err := c.sendPostCronWrpouiqjflsadkmxcvz780923(ctx)
+	return err
+}
+
+func (c *Client) sendPostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) (res *PostCronWrpouiqjflsadkmxcvz780923OK, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("post-cron-wrpouiqjflsadkmxcvz780923"),
+		semconv.HTTPMethodKey.String("POST"),
+		semconv.HTTPRouteKey.String("/cron-wrpouiqjflsadkmxcvz780923"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "PostCronWrpouiqjflsadkmxcvz780923",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [1]string
+	pathParts[0] = "/cron-wrpouiqjflsadkmxcvz780923"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "POST", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodePostCronWrpouiqjflsadkmxcvz780923Response(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

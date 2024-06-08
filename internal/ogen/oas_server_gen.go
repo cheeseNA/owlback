@@ -38,6 +38,12 @@ type Handler interface {
 	//
 	// GET /healthz
 	Healthz(ctx context.Context) error
+	// PostCronWrpouiqjflsadkmxcvz780923 implements post-cron-wrpouiqjflsadkmxcvz780923 operation.
+	//
+	// Execute crawl.
+	//
+	// POST /cron-wrpouiqjflsadkmxcvz780923
+	PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error
 }
 
 // Server implements http server based on OpenAPI v3 specification and

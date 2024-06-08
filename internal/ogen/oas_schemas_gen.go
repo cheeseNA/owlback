@@ -115,6 +115,9 @@ func (o OptTaskRequest) Or(d TaskRequest) TaskRequest {
 	return d
 }
 
+// PostCronWrpouiqjflsadkmxcvz780923OK is response for PostCronWrpouiqjflsadkmxcvz780923 operation.
+type PostCronWrpouiqjflsadkmxcvz780923OK struct{}
+
 // Ref: #/components/schemas/TaskRequest
 type TaskRequest struct {
 	SiteURL        url.URL `json:"site_url"`

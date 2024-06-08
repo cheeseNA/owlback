@@ -61,6 +61,27 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			switch elem[0] {
+			case 'c': // Prefix: "cron-wrpouiqjflsadkmxcvz780923"
+				origElem := elem
+				if l := len("cron-wrpouiqjflsadkmxcvz780923"); len(elem) >= l && elem[0:l] == "cron-wrpouiqjflsadkmxcvz780923" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					// Leaf node.
+					switch r.Method {
+					case "POST":
+						s.handlePostCronWrpouiqjflsadkmxcvz780923Request([0]string{}, elemIsEscaped, w, r)
+					default:
+						s.notAllowed(w, r, "POST")
+					}
+
+					return
+				}
+
+				elem = origElem
 			case 'h': // Prefix: "healthz"
 				origElem := elem
 				if l := len("healthz"); len(elem) >= l && elem[0:l] == "healthz" {
@@ -233,6 +254,31 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 				break
 			}
 			switch elem[0] {
+			case 'c': // Prefix: "cron-wrpouiqjflsadkmxcvz780923"
+				origElem := elem
+				if l := len("cron-wrpouiqjflsadkmxcvz780923"); len(elem) >= l && elem[0:l] == "cron-wrpouiqjflsadkmxcvz780923" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				if len(elem) == 0 {
+					// Leaf node.
+					switch method {
+					case "POST":
+						r.name = "PostCronWrpouiqjflsadkmxcvz780923"
+						r.summary = "Execute crawl"
+						r.operationID = "post-cron-wrpouiqjflsadkmxcvz780923"
+						r.pathPattern = "/cron-wrpouiqjflsadkmxcvz780923"
+						r.args = args
+						r.count = 0
+						return r, true
+					default:
+						return
+					}
+				}
+
+				elem = origElem
 			case 'h': // Prefix: "healthz"
 				origElem := elem
 				if l := len("healthz"); len(elem) >= l && elem[0:l] == "healthz" {
