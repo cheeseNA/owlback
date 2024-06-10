@@ -3,6 +3,7 @@ package funccall
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/go-faster/errors"
 	"github.com/go-playground/validator/v10"
 	"io"
@@ -57,12 +58,12 @@ func (s *FuncService) CallFunc(req Request) (res Response, err error) {
 			err = errors.Join(err, defErr)
 		}
 	}()
-	if httpRes.StatusCode > 299 {
-		return Response{}, errors.New("unexpected status code")
-	}
 	resBody, err := io.ReadAll(httpRes.Body)
 	if err != nil {
-		return Response{}, err
+		return Response{}, fmt.Errorf("failed to read response body: %w", err)
+	}
+	if httpRes.StatusCode > 299 {
+		return Response{}, fmt.Errorf("unexpected status code: %d, body: %s", httpRes.StatusCode, string(resBody))
 	}
 	err = json.Unmarshal(resBody, &res)
 	if err != nil {

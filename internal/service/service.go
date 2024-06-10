@@ -7,6 +7,7 @@ import (
 	"github.com/cheeseNA/owlback/internal/funccall"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"net/url"
 	"time"
@@ -39,6 +40,7 @@ func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) error {
 		DurationDay:    taskReq.DurationDay,
 		IsPublic:       taskReq.IsPublic,
 		IsPaused:       false,
+		CreatedBy:      uuid.New(), // TODO: replace with user id
 	}
 	return s.repo.CreateTask(task)
 }

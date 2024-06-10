@@ -16,7 +16,7 @@ type Task struct {
 	DurationDay    int       `gorm:"not null"`
 	IsPublic       bool      `gorm:"not null"`
 	LastCrawledAt  *time.Time
-	LastContent    *string `gorm:"type:text"`
-	IsPaused       bool    `gorm:"not null"`
-	DeletedAt      gorm.DeletedAt
+	LastContent    *string        `gorm:"type:text"`
+	IsPaused       bool           `gorm:"not null"`
+	DeletedAt      gorm.DeletedAt // TODO: add last triggered at
 }
