@@ -18,6 +18,8 @@ type Service struct {
 	logger      *zap.Logger // TODO: replace with context logger interface
 }
 
+const scrapeCooldown = 1 * time.Minute
+
 func NewService(repo repository.ITaskRepository, funcService funccall.IFuncService, logger *zap.Logger) *Service {
 	return &Service{
 		repo:        repo,
@@ -132,6 +134,7 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 			IsStrict:    false, // TODO: add strict to model
 		}
 		res, e := s.funcService.CallFunc(req)
+		time.Sleep(scrapeCooldown)
 		if e != nil {
 			s.logger.Error("Failed to call function", zap.Error(e))
 			err = errors.Join(err, e)
