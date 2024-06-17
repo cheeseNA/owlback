@@ -12,7 +12,7 @@ import (
 
 type Request struct {
 	Url         string `json:"url"`
-	OpenaiKey   string `json:"openai_key"`
+	GeminiKey   string `json:"gemini_key"`
 	Query       string `json:"query"`
 	LastContent string `json:"last_content"`
 	IsStrict    bool   `json:"is_strict"`

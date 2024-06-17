@@ -129,8 +129,9 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 		}
 		now := time.Now()
 		req := funccall.Request{
-			Url:         task.SiteURL,
-			OpenaiKey:   "sk-proj-md1SX1jfiAVlxu7oMH3FT3BlbkFJbFtePRkUFXMkoC7VGDWf", // TODO: add openai key to model
+			Url: task.SiteURL,
+			//OpenaiKey:   "sk-proj-md1SX1jfiAVlxu7oMH3FT3BlbkFJbFtePRkUFXMkoC7VGDWf", // TODO: add openai key to model
+			GeminiKey:   "AIzaSyCHyWg2J9Ntgb6YZ-p9f_Kmezo0vO9xv7I",
 			Query:       task.ConditionQuery,
 			LastContent: lastContent,
 			IsStrict:    false, // TODO: add strict to model
