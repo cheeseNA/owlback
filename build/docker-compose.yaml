@@ -7,11 +7,14 @@ services:
       POSTGRES_CONNECTION_STRING: postgres://postgres:password@pg:5432/postgres
       RUNNING_ENVIRONMENT: local
       FUNCTION_URL: http://host.docker.internal:8888
+      GOOGLE_APPLICATION_CREDENTIALS: /volume/crawl-owl0-firebase-adminsdk-jt5gt-9744727ed3.json
     ports:
       - 8080:8080
     depends_on:
       pg:
         condition: service_healthy
+    volumes:
+      - ./volume:/volume
 
   pg:
     image: "postgres:15.1"

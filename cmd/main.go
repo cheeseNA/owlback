@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	firebase "firebase.google.com/go/v4"
 	"github.com/cheeseNA/owlback/internal/config"
 	"github.com/cheeseNA/owlback/internal/funccall"
+	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"github.com/cheeseNA/owlback/internal/service"
@@ -50,6 +53,16 @@ func main() {
 		log.Fatal(err)
 	}
 
+	app, err := firebase.NewApp(context.Background(), nil)
+	if err != nil {
+		log.Fatalf("error initializing app: %v\n", err)
+	}
+	authClient, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("error getting Auth client: %v\n", err)
+	}
+	handler := middleware.Auth(authClient)(srv)
+
 	AllowedOrigins := []string{}
 	if cfg.RunningEnvironment == config.Local {
 		AllowedOrigins = append(AllowedOrigins, "http://localhost:3000")
@@ -59,11 +72,12 @@ func main() {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   AllowedOrigins,
 		AllowCredentials: true,
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: cfg.RunningEnvironment == config.Local,
 	})
 	// Insert the middleware
-	handler := c.Handler(srv)
+	handler = c.Handler(handler)
 
 	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatal(err)
