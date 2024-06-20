@@ -75,7 +75,7 @@ func main() {
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		// Enable Debugging for testing, consider disabling in production
-		Debug: cfg.RunningEnvironment == config.Local,
+		Debug: false,
 	})
 	// Insert the middleware
 	handler = c.Handler(handler)

@@ -31,12 +31,15 @@ func NewService(repo repository.ITaskRepository, funcService funccall.IFuncServi
 }
 
 func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) (api.CrateTaskRes, error) {
+	s.logger.Info("Create task")
 	taskReq, ok := req.Get()
 	if !ok {
+		s.logger.Error("Invalid request")
 		return &api.CrateTaskBadRequest{}, fmt.Errorf("invalid request")
 	}
 	user := middleware.GetUser(ctx)
 	if user == nil {
+		s.logger.Error("Unauthorized")
 		return &api.CrateTaskUnauthorized{}, fmt.Errorf("unauthorized")
 	}
 	task := repository.Task{
@@ -48,43 +51,54 @@ func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) (api.Cr
 		User:           repository.TokenToUserModel(user),
 	}
 	if err := s.repo.CreateTask(task); err != nil {
+		s.logger.Error("Failed to create task", zap.Error(err))
 		return &api.CrateTaskInternalServerError{}, err
 	}
 	return &api.CrateTaskCreated{}, nil
 }
 
 func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDParams) (api.DeleteTaskByIDRes, error) {
+	s.logger.Info("Delete task by id: ", zap.Any("id", params.TaskId))
 	task, err := s.repo.GetTaskByID(params.TaskId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) { // todo: not depend on actual impl.
+			s.logger.Error("Task not found", zap.Error(err))
 			return &api.DeleteTaskByIDNotFound{}, err
 		}
+		s.logger.Error("Failed to get task", zap.Error(err))
 		return &api.DeleteTaskByIDInternalServerError{}, err
 	}
 	if task.UserID != middleware.GetUser(ctx).UID {
+		s.logger.Error("Unauthorized")
 		return &api.DeleteTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
 	}
 	err = s.repo.DeleteTaskByID(params.TaskId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) { // TODO: use transaction
+			s.logger.Error("Task not found", zap.Error(err))
 			return &api.DeleteTaskByIDNotFound{}, err
 		}
+		s.logger.Error("Failed to delete task", zap.Error(err))
 		return &api.DeleteTaskByIDInternalServerError{}, err
 	}
 	return &api.DeleteTaskByIDOK{}, nil
 }
 
 func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams) (api.GetTaskByIDRes, error) {
+	s.logger.Info("Get task by id: ", zap.Any("id", params.TaskId))
 	task, err := s.repo.GetTaskByID(params.TaskId)
 	if err != nil {
+		s.logger.Error("Failed to get task", zap.Error(err))
 		return &api.GetTaskByIDNotFound{}, err
 	}
 	if !task.IsPublic && task.UserID != middleware.GetUser(ctx).UID {
+		s.logger.Error("Unauthorized")
 		return &api.GetTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
 	}
 
 	siteUrl, err := url.Parse(task.SiteURL)
 	if err != nil {
+		s.logger.Error("Failed to parse site url", zap.Error(err))
 		return &api.GetTaskByIDInternalServerError{}, err
 	}
 	var lastCrawledAt api.OptDateTime
@@ -108,22 +122,26 @@ func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams)
 }
 
 func (s *Service) GetTasks(ctx context.Context) (api.GetTasksRes, error) {
+	s.logger.Info("Get tasks")
 	tasks, err := s.repo.GetTasks()
 	if err != nil {
+		s.logger.Error("Failed to get tasks", zap.Error(err))
 		return &api.GetTasksInternalServerError{}, err
 	}
 	res := make([]api.TaskResponse, len(tasks))
 	for i, task := range tasks {
 		siteUrl, err := url.Parse(task.SiteURL)
+		if err != nil {
+			s.logger.Error("Failed to parse site url", zap.Error(err))
+			return &api.GetTasksInternalServerError{}, err
+		}
 		var lastCrawledAt api.OptDateTime
 		if task.LastCrawledAt != nil {
 			lastCrawledAt = api.NewOptDateTime(*task.LastCrawledAt)
 		} else {
 			lastCrawledAt.Reset()
 		}
-		if err != nil {
-			return &api.GetTasksInternalServerError{}, err
-		}
+
 		res[i] = api.TaskResponse{
 			SiteURL:        *siteUrl,
 			ConditionQuery: task.ConditionQuery,
@@ -142,12 +160,13 @@ func (s *Service) GetTasks(ctx context.Context) (api.GetTasksRes, error) {
 }
 
 func (s *Service) Healthz(ctx context.Context) error {
+	s.logger.Info("healthz")
 	return nil
 }
 
 func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
-	tasks, err := s.repo.GetTasksToCrawl()
 	s.logger.Info("Crawling tasks")
+	tasks, err := s.repo.GetTasksToCrawl()
 	if err != nil {
 		return err
 	}
