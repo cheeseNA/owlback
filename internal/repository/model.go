@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"firebase.google.com/go/v4/auth"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
@@ -29,4 +30,13 @@ type User struct {
 	Name       string    `gorm:"type:text;not null"`
 	Email      string    `gorm:"type:text;not null, unique"`
 	PictureURL string    `gorm:"type:text;not null"`
+}
+
+func TokenToUserModel(token *auth.Token) User {
+	return User{
+		ID:         token.UID,
+		Name:       token.Claims["name"].(string),
+		Email:      token.Claims["email"].(string),
+		PictureURL: token.Claims["picture"].(string),
+	}
 }
