@@ -54,7 +54,7 @@ func (r *TaskRepository) UpdateTask(targetTask Task, updateTask Task) error {
 func (r *TaskRepository) GetTasks() ([]Task, error) {
 	r.logger.Info("Getting tasks")
 	var tasks []Task
-	err := r.db.Find(&tasks).Error
+	err := r.db.Where("is_public = ?", true).Find(&tasks).Error
 	return tasks, err
 }
 
