@@ -11,18 +11,54 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func encodeCrateTaskResponse(response *CrateTaskCreated, w http.ResponseWriter, span trace.Span) error {
-	w.WriteHeader(201)
-	span.SetStatus(codes.Ok, http.StatusText(201))
+func encodeCrateTaskResponse(response CrateTaskRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *CrateTaskCreated:
+		w.WriteHeader(201)
+		span.SetStatus(codes.Ok, http.StatusText(201))
 
-	return nil
+		return nil
+
+	case *CrateTaskBadRequest:
+		w.WriteHeader(400)
+		span.SetStatus(codes.Error, http.StatusText(400))
+
+		return nil
+
+	case *CrateTaskUnauthorized:
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
 }
 
-func encodeDeleteTaskByIDResponse(response *DeleteTaskByIDOK, w http.ResponseWriter, span trace.Span) error {
-	w.WriteHeader(200)
-	span.SetStatus(codes.Ok, http.StatusText(200))
+func encodeDeleteTaskByIDResponse(response DeleteTaskByIDRes, w http.ResponseWriter, span trace.Span) error {
+	switch response := response.(type) {
+	case *DeleteTaskByIDOK:
+		w.WriteHeader(200)
+		span.SetStatus(codes.Ok, http.StatusText(200))
 
-	return nil
+		return nil
+
+	case *DeleteTaskByIDUnauthorized:
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
+
+		return nil
+
+	case *DeleteTaskByIDNotFound:
+		w.WriteHeader(404)
+		span.SetStatus(codes.Error, http.StatusText(404))
+
+		return nil
+
+	default:
+		return errors.Errorf("unexpected response type: %T", response)
+	}
 }
 
 func encodeGetTaskByIDResponse(response GetTaskByIDRes, w http.ResponseWriter, span trace.Span) error {
@@ -37,6 +73,12 @@ func encodeGetTaskByIDResponse(response GetTaskByIDRes, w http.ResponseWriter, s
 		if _, err := e.WriteTo(w); err != nil {
 			return errors.Wrap(err, "write")
 		}
+
+		return nil
+
+	case *GetTaskByIDUnauthorized:
+		w.WriteHeader(401)
+		span.SetStatus(codes.Error, http.StatusText(401))
 
 		return nil
 

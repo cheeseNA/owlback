@@ -44,6 +44,10 @@ paths:
       responses:
         '201':
           description: Created
+        '400':
+          description: Bad Request
+        '401':
+          description: Unauthorized
       operationId: crate-task
       x-stoplight:
         id: v83ljt82n8yl2
@@ -74,6 +78,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskResponse'
+        '401':
+          description: Unauthorized
         '404':
           description: Not Found
       operationId: get-task-by-id
@@ -88,6 +94,10 @@ paths:
       responses:
         '200':
           description: OK
+        '401':
+          description: Unauthorized
+        '404':
+          description: Not Found
       operationId: delete-task-by-id
       x-stoplight:
         id: wheqz161eflx2
@@ -168,7 +178,7 @@ components:
           required:
             - id
             - created_at
-            - created_by
+            - user_id
             - updated_at
             - is_paused
           properties:
@@ -184,11 +194,10 @@ components:
                 id: 9yt0u7yv8pkxa
               format: date-time
               readOnly: true
-            created_by:
+            user_id:
               type: string
               x-stoplight:
                 id: hw98mzufjrgxa
-              format: uuid
               readOnly: true
             updated_at:
               type: string

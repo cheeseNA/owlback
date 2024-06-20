@@ -15,20 +15,32 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
-func decodeCrateTaskResponse(resp *http.Response) (res *CrateTaskCreated, _ error) {
+func decodeCrateTaskResponse(resp *http.Response) (res CrateTaskRes, _ error) {
 	switch resp.StatusCode {
 	case 201:
 		// Code 201.
 		return &CrateTaskCreated{}, nil
+	case 400:
+		// Code 400.
+		return &CrateTaskBadRequest{}, nil
+	case 401:
+		// Code 401.
+		return &CrateTaskUnauthorized{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeDeleteTaskByIDResponse(resp *http.Response) (res *DeleteTaskByIDOK, _ error) {
+func decodeDeleteTaskByIDResponse(resp *http.Response) (res DeleteTaskByIDRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
 		return &DeleteTaskByIDOK{}, nil
+	case 401:
+		// Code 401.
+		return &DeleteTaskByIDUnauthorized{}, nil
+	case 404:
+		// Code 404.
+		return &DeleteTaskByIDNotFound{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -79,6 +91,9 @@ func decodeGetTaskByIDResponse(resp *http.Response) (res GetTaskByIDRes, _ error
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 401:
+		// Code 401.
+		return &GetTaskByIDUnauthorized{}, nil
 	case 404:
 		// Code 404.
 		return &GetTaskByIDNotFound{}, nil

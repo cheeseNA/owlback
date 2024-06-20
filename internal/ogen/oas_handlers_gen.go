@@ -84,7 +84,7 @@ func (s *Server) handleCrateTaskRequest(args [0]string, argsEscaped bool, w http
 		}
 	}()
 
-	var response *CrateTaskCreated
+	var response CrateTaskRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
@@ -99,7 +99,7 @@ func (s *Server) handleCrateTaskRequest(args [0]string, argsEscaped bool, w http
 		type (
 			Request  = OptTaskRequest
 			Params   = struct{}
-			Response = *CrateTaskCreated
+			Response = CrateTaskRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -110,12 +110,12 @@ func (s *Server) handleCrateTaskRequest(args [0]string, argsEscaped bool, w http
 			mreq,
 			nil,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				err = s.h.CrateTask(ctx, request)
+				response, err = s.h.CrateTask(ctx, request)
 				return response, err
 			},
 		)
 	} else {
-		err = s.h.CrateTask(ctx, request)
+		response, err = s.h.CrateTask(ctx, request)
 	}
 	if err != nil {
 		defer recordError("Internal", err)
@@ -191,7 +191,7 @@ func (s *Server) handleDeleteTaskByIDRequest(args [1]string, argsEscaped bool, w
 		return
 	}
 
-	var response *DeleteTaskByIDOK
+	var response DeleteTaskByIDRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
@@ -211,7 +211,7 @@ func (s *Server) handleDeleteTaskByIDRequest(args [1]string, argsEscaped bool, w
 		type (
 			Request  = struct{}
 			Params   = DeleteTaskByIDParams
-			Response = *DeleteTaskByIDOK
+			Response = DeleteTaskByIDRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,
@@ -222,12 +222,12 @@ func (s *Server) handleDeleteTaskByIDRequest(args [1]string, argsEscaped bool, w
 			mreq,
 			unpackDeleteTaskByIDParams,
 			func(ctx context.Context, request Request, params Params) (response Response, err error) {
-				err = s.h.DeleteTaskByID(ctx, params)
+				response, err = s.h.DeleteTaskByID(ctx, params)
 				return response, err
 			},
 		)
 	} else {
-		err = s.h.DeleteTaskByID(ctx, params)
+		response, err = s.h.DeleteTaskByID(ctx, params)
 	}
 	if err != nil {
 		defer recordError("Internal", err)

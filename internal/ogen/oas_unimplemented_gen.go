@@ -18,8 +18,8 @@ var _ Handler = UnimplementedHandler{}
 // Create Task.
 //
 // POST /tasks
-func (UnimplementedHandler) CrateTask(ctx context.Context, req OptTaskRequest) error {
-	return ht.ErrNotImplemented
+func (UnimplementedHandler) CrateTask(ctx context.Context, req OptTaskRequest) (r CrateTaskRes, _ error) {
+	return r, ht.ErrNotImplemented
 }
 
 // DeleteTaskByID implements delete-task-by-id operation.
@@ -27,8 +27,8 @@ func (UnimplementedHandler) CrateTask(ctx context.Context, req OptTaskRequest) e
 // Delete Task by ID.
 //
 // DELETE /tasks/{taskId}
-func (UnimplementedHandler) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error {
-	return ht.ErrNotImplemented
+func (UnimplementedHandler) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (r DeleteTaskByIDRes, _ error) {
+	return r, ht.ErrNotImplemented
 }
 
 // GetTaskByID implements get-task-by-id operation.

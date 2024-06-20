@@ -263,8 +263,8 @@ func (s *TaskResponse) encodeFields(e *jx.Encoder) {
 		json.EncodeDateTime(e, s.CreatedAt)
 	}
 	{
-		e.FieldStart("created_by")
-		json.EncodeUUID(e, s.CreatedBy)
+		e.FieldStart("user_id")
+		e.Str(s.UserID)
 	}
 	{
 		e.FieldStart("updated_at")
@@ -289,7 +289,7 @@ var jsonFieldsNameOfTaskResponse = [10]string{
 	3: "is_public",
 	4: "id",
 	5: "created_at",
-	6: "created_by",
+	6: "user_id",
 	7: "updated_at",
 	8: "last_crawled_at",
 	9: "is_paused",
@@ -376,17 +376,17 @@ func (s *TaskResponse) Decode(d *jx.Decoder) error {
 			}(); err != nil {
 				return errors.Wrap(err, "decode field \"created_at\"")
 			}
-		case "created_by":
+		case "user_id":
 			requiredBitSet[0] |= 1 << 6
 			if err := func() error {
-				v, err := json.DecodeUUID(d)
-				s.CreatedBy = v
+				v, err := d.Str()
+				s.UserID = string(v)
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"created_by\"")
+				return errors.Wrap(err, "decode field \"user_id\"")
 			}
 		case "updated_at":
 			requiredBitSet[0] |= 1 << 7

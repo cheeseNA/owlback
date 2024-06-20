@@ -28,13 +28,13 @@ type Invoker interface {
 	// Create Task.
 	//
 	// POST /tasks
-	CrateTask(ctx context.Context, request OptTaskRequest) error
+	CrateTask(ctx context.Context, request OptTaskRequest) (CrateTaskRes, error)
 	// DeleteTaskByID invokes delete-task-by-id operation.
 	//
 	// Delete Task by ID.
 	//
 	// DELETE /tasks/{taskId}
-	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error
+	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (DeleteTaskByIDRes, error)
 	// GetTaskByID invokes get-task-by-id operation.
 	//
 	// Get Task by ID.
@@ -114,12 +114,12 @@ func (c *Client) requestURL(ctx context.Context) *url.URL {
 // Create Task.
 //
 // POST /tasks
-func (c *Client) CrateTask(ctx context.Context, request OptTaskRequest) error {
-	_, err := c.sendCrateTask(ctx, request)
-	return err
+func (c *Client) CrateTask(ctx context.Context, request OptTaskRequest) (CrateTaskRes, error) {
+	res, err := c.sendCrateTask(ctx, request)
+	return res, err
 }
 
-func (c *Client) sendCrateTask(ctx context.Context, request OptTaskRequest) (res *CrateTaskCreated, err error) {
+func (c *Client) sendCrateTask(ctx context.Context, request OptTaskRequest) (res CrateTaskRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("crate-task"),
 		semconv.HTTPMethodKey.String("POST"),
@@ -189,12 +189,12 @@ func (c *Client) sendCrateTask(ctx context.Context, request OptTaskRequest) (res
 // Delete Task by ID.
 //
 // DELETE /tasks/{taskId}
-func (c *Client) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error {
-	_, err := c.sendDeleteTaskByID(ctx, params)
-	return err
+func (c *Client) DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (DeleteTaskByIDRes, error) {
+	res, err := c.sendDeleteTaskByID(ctx, params)
+	return res, err
 }
 
-func (c *Client) sendDeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (res *DeleteTaskByIDOK, err error) {
+func (c *Client) sendDeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (res DeleteTaskByIDRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("delete-task-by-id"),
 		semconv.HTTPMethodKey.String("DELETE"),

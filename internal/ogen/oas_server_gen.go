@@ -13,13 +13,13 @@ type Handler interface {
 	// Create Task.
 	//
 	// POST /tasks
-	CrateTask(ctx context.Context, req OptTaskRequest) error
+	CrateTask(ctx context.Context, req OptTaskRequest) (CrateTaskRes, error)
 	// DeleteTaskByID implements delete-task-by-id operation.
 	//
 	// Delete Task by ID.
 	//
 	// DELETE /tasks/{taskId}
-	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) error
+	DeleteTaskByID(ctx context.Context, params DeleteTaskByIDParams) (DeleteTaskByIDRes, error)
 	// GetTaskByID implements get-task-by-id operation.
 	//
 	// Get Task by ID.

@@ -9,16 +9,45 @@ import (
 	"github.com/google/uuid"
 )
 
+// CrateTaskBadRequest is response for CrateTask operation.
+type CrateTaskBadRequest struct{}
+
+func (*CrateTaskBadRequest) crateTaskRes() {}
+
 // CrateTaskCreated is response for CrateTask operation.
 type CrateTaskCreated struct{}
 
+func (*CrateTaskCreated) crateTaskRes() {}
+
+// CrateTaskUnauthorized is response for CrateTask operation.
+type CrateTaskUnauthorized struct{}
+
+func (*CrateTaskUnauthorized) crateTaskRes() {}
+
+// DeleteTaskByIDNotFound is response for DeleteTaskByID operation.
+type DeleteTaskByIDNotFound struct{}
+
+func (*DeleteTaskByIDNotFound) deleteTaskByIDRes() {}
+
 // DeleteTaskByIDOK is response for DeleteTaskByID operation.
 type DeleteTaskByIDOK struct{}
+
+func (*DeleteTaskByIDOK) deleteTaskByIDRes() {}
+
+// DeleteTaskByIDUnauthorized is response for DeleteTaskByID operation.
+type DeleteTaskByIDUnauthorized struct{}
+
+func (*DeleteTaskByIDUnauthorized) deleteTaskByIDRes() {}
 
 // GetTaskByIDNotFound is response for GetTaskByID operation.
 type GetTaskByIDNotFound struct{}
 
 func (*GetTaskByIDNotFound) getTaskByIDRes() {}
+
+// GetTaskByIDUnauthorized is response for GetTaskByID operation.
+type GetTaskByIDUnauthorized struct{}
+
+func (*GetTaskByIDUnauthorized) getTaskByIDRes() {}
 
 // HealthzOK is response for Healthz operation.
 type HealthzOK struct{}
@@ -175,7 +204,7 @@ type TaskResponse struct {
 	IsPublic       bool        `json:"is_public"`
 	ID             uuid.UUID   `json:"id"`
 	CreatedAt      time.Time   `json:"created_at"`
-	CreatedBy      uuid.UUID   `json:"created_by"`
+	UserID         string      `json:"user_id"`
 	UpdatedAt      time.Time   `json:"updated_at"`
 	LastCrawledAt  OptDateTime `json:"last_crawled_at"`
 	IsPaused       bool        `json:"is_paused"`
@@ -211,9 +240,9 @@ func (s *TaskResponse) GetCreatedAt() time.Time {
 	return s.CreatedAt
 }
 
-// GetCreatedBy returns the value of CreatedBy.
-func (s *TaskResponse) GetCreatedBy() uuid.UUID {
-	return s.CreatedBy
+// GetUserID returns the value of UserID.
+func (s *TaskResponse) GetUserID() string {
+	return s.UserID
 }
 
 // GetUpdatedAt returns the value of UpdatedAt.
@@ -261,9 +290,9 @@ func (s *TaskResponse) SetCreatedAt(val time.Time) {
 	s.CreatedAt = val
 }
 
-// SetCreatedBy sets the value of CreatedBy.
-func (s *TaskResponse) SetCreatedBy(val uuid.UUID) {
-	s.CreatedBy = val
+// SetUserID sets the value of UserID.
+func (s *TaskResponse) SetUserID(val string) {
+	s.UserID = val
 }
 
 // SetUpdatedAt sets the value of UpdatedAt.
