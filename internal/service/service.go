@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/cheeseNA/owlback/internal/funccall"
+	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"net/url"
 	"time"
 )
@@ -29,10 +30,14 @@ func NewService(repo repository.ITaskRepository, funcService funccall.IFuncServi
 	}
 }
 
-func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) error {
+func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) (api.CrateTaskRes, error) {
 	taskReq, ok := req.Get()
 	if !ok {
-		return fmt.Errorf("invalid request")
+		return &api.CrateTaskBadRequest{}, fmt.Errorf("invalid request")
+	}
+	user := middleware.GetUser(ctx)
+	if user == nil {
+		return &api.CrateTaskUnauthorized{}, fmt.Errorf("unauthorized")
 	}
 	task := repository.Task{
 		SiteURL:        taskReq.SiteURL.String(),
@@ -40,19 +45,33 @@ func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) error {
 		DurationDay:    taskReq.DurationDay,
 		IsPublic:       taskReq.IsPublic,
 		IsPaused:       false,
-		CreatedBy:      uuid.New(), // TODO: replace with user id
+		User:           repository.TokenToUserModel(user),
 	}
-	return s.repo.CreateTask(task)
+	if err := s.repo.CreateTask(task); err != nil {
+		return &api.CrateTaskInternalServerError{}, err
+	}
+	return &api.CrateTaskCreated{}, nil
 }
 
-func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDParams) error {
-	err := s.repo.DeleteTaskByID(params.TaskId)
-	//if err != nil {
-	//	if errors.Is(err, gorm.ErrRecordNotFound) { // todo: not depend on actual impl.
-	//		return &api.DeleteTaskByIDNotFound // todo: re-design api
-	//	}
-	//}
-	return err
+func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDParams) (api.DeleteTaskByIDRes, error) {
+	task, err := s.repo.GetTaskByID(params.TaskId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) { // todo: not depend on actual impl.
+			return &api.DeleteTaskByIDNotFound{}, err
+		}
+		return &api.DeleteTaskByIDInternalServerError{}, err
+	}
+	if task.UserID != middleware.GetUser(ctx).UID {
+		return &api.DeleteTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
+	}
+	err = s.repo.DeleteTaskByID(params.TaskId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) { // TODO: use transaction
+			return &api.DeleteTaskByIDNotFound{}, err
+		}
+		return &api.DeleteTaskByIDInternalServerError{}, err
+	}
+	return &api.DeleteTaskByIDOK{}, nil
 }
 
 func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams) (api.GetTaskByIDRes, error) {
@@ -60,9 +79,13 @@ func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams)
 	if err != nil {
 		return &api.GetTaskByIDNotFound{}, err
 	}
+	if !task.IsPublic && task.UserID != middleware.GetUser(ctx).UID {
+		return &api.GetTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
+	}
+
 	siteUrl, err := url.Parse(task.SiteURL)
 	if err != nil {
-		return nil, err
+		return &api.GetTaskByIDInternalServerError{}, err
 	}
 	var lastCrawledAt api.OptDateTime
 	if task.LastCrawledAt != nil {
@@ -77,17 +100,17 @@ func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams)
 		IsPublic:       task.IsPublic,
 		ID:             task.ID,
 		CreatedAt:      task.CreatedAt,
-		CreatedBy:      task.CreatedBy,
+		UserID:         task.UserID,
 		UpdatedAt:      task.UpdatedAt,
 		LastCrawledAt:  lastCrawledAt,
 		IsPaused:       task.IsPaused,
 	}, nil
 }
 
-func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
+func (s *Service) GetTasks(ctx context.Context) (api.GetTasksRes, error) {
 	tasks, err := s.repo.GetTasks()
 	if err != nil {
-		return nil, err
+		return &api.GetTasksInternalServerError{}, err
 	}
 	res := make([]api.TaskResponse, len(tasks))
 	for i, task := range tasks {
@@ -99,7 +122,7 @@ func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
 			lastCrawledAt.Reset()
 		}
 		if err != nil {
-			return nil, err
+			return &api.GetTasksInternalServerError{}, err
 		}
 		res[i] = api.TaskResponse{
 			SiteURL:        *siteUrl,
@@ -108,13 +131,14 @@ func (s *Service) GetTasks(ctx context.Context) ([]api.TaskResponse, error) {
 			IsPublic:       task.IsPublic,
 			ID:             task.ID,
 			CreatedAt:      task.CreatedAt,
-			CreatedBy:      task.CreatedBy,
+			UserID:         task.UserID,
 			UpdatedAt:      task.UpdatedAt,
 			LastCrawledAt:  lastCrawledAt,
 			IsPaused:       task.IsPaused,
 		}
 	}
-	return res, nil
+	okRes := api.GetTasksOKApplicationJSON(res)
+	return &okRes, nil
 }
 
 func (s *Service) Healthz(ctx context.Context) error {
