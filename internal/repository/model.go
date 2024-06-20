@@ -8,10 +8,10 @@ import (
 )
 
 type Task struct {
-	ID             uuid.UUID `gorm:"primaryKey,type:uuid,default:gen_random_uuid(),not null,unique"`
+	ID             uuid.UUID `gorm:"default:gen_random_uuid();primaryKey;type:uuid;not null;unique"`
 	CreatedAt      time.Time `gorm:"autoCreateTime"`
 	User           User
-	UserID         string
+	UserID         string    `gorm:"not null"`
 	UpdatedAt      time.Time `gorm:"autoUpdateTime"`
 	SiteURL        string    `gorm:"type:text;not null"`
 	ConditionQuery string    `gorm:"type:text;not null"`
@@ -24,7 +24,7 @@ type Task struct {
 }
 
 type User struct {
-	ID         string    `gorm:"primaryKey,not null, unique"`
+	ID         string    `gorm:"primaryKey;not null;unique"`
 	CreateAt   time.Time `gorm:"autoCreateTime"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 	Name       string    `gorm:"type:text;not null"`
