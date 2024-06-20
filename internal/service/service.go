@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"github.com/cheeseNA/owlback/internal/funccall"
 	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
@@ -35,12 +34,12 @@ func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) (api.Cr
 	taskReq, ok := req.Get()
 	if !ok {
 		s.logger.Error("Invalid request")
-		return &api.CrateTaskBadRequest{}, fmt.Errorf("invalid request")
+		return &api.CrateTaskBadRequest{}, nil
 	}
 	user := middleware.GetUser(ctx)
 	if user == nil {
 		s.logger.Error("Unauthorized")
-		return &api.CrateTaskUnauthorized{}, fmt.Errorf("unauthorized")
+		return &api.CrateTaskUnauthorized{}, nil
 	}
 	task := repository.Task{
 		SiteURL:        taskReq.SiteURL.String(),
@@ -63,20 +62,20 @@ func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDP
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) { // todo: not depend on actual impl.
 			s.logger.Error("Task not found", zap.Error(err))
-			return &api.DeleteTaskByIDNotFound{}, err
+			return &api.DeleteTaskByIDNotFound{}, nil
 		}
 		s.logger.Error("Failed to get task", zap.Error(err))
 		return &api.DeleteTaskByIDInternalServerError{}, err
 	}
 	if task.UserID != middleware.GetUser(ctx).UID {
-		s.logger.Error("Unauthorized")
-		return &api.DeleteTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
+		s.logger.Error("Unauthorized or forbidden")
+		return &api.DeleteTaskByIDUnauthorized{}, nil
 	}
 	err = s.repo.DeleteTaskByID(params.TaskId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) { // TODO: use transaction
 			s.logger.Error("Task not found", zap.Error(err))
-			return &api.DeleteTaskByIDNotFound{}, err
+			return &api.DeleteTaskByIDNotFound{}, nil
 		}
 		s.logger.Error("Failed to delete task", zap.Error(err))
 		return &api.DeleteTaskByIDInternalServerError{}, err
@@ -89,11 +88,11 @@ func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams)
 	task, err := s.repo.GetTaskByID(params.TaskId)
 	if err != nil {
 		s.logger.Error("Failed to get task", zap.Error(err))
-		return &api.GetTaskByIDNotFound{}, err
+		return &api.GetTaskByIDNotFound{}, nil
 	}
 	if !task.IsPublic && task.UserID != middleware.GetUser(ctx).UID {
-		s.logger.Error("Unauthorized")
-		return &api.GetTaskByIDUnauthorized{}, fmt.Errorf("unauthorized or forbidden")
+		s.logger.Error("Unauthorized or forbidden")
+		return &api.GetTaskByIDUnauthorized{}, nil
 	}
 
 	siteUrl, err := url.Parse(task.SiteURL)
