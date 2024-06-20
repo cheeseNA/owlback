@@ -46,7 +46,13 @@ func (s *Service) CrateTask(ctx context.Context, req api.OptTaskRequest) error {
 }
 
 func (s *Service) DeleteTaskByID(ctx context.Context, params api.DeleteTaskByIDParams) error {
-	return s.repo.DeleteTaskByID(params.TaskId)
+	err := s.repo.DeleteTaskByID(params.TaskId)
+	//if err != nil {
+	//	if errors.Is(err, gorm.ErrRecordNotFound) { // todo: not depend on actual impl.
+	//		return &api.DeleteTaskByIDNotFound // todo: re-design api
+	//	}
+	//}
+	return err
 }
 
 func (s *Service) GetTaskByID(ctx context.Context, params api.GetTaskByIDParams) (api.GetTaskByIDRes, error) {

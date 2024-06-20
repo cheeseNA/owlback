@@ -73,6 +73,7 @@ func main() {
 		AllowedOrigins:   AllowedOrigins,
 		AllowCredentials: true,
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		// Enable Debugging for testing, consider disabling in production
 		Debug: cfg.RunningEnvironment == config.Local,
 	})

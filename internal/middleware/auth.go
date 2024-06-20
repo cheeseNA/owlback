@@ -26,7 +26,7 @@ func Auth(client *auth.Client) func(next http.Handler) http.Handler {
 				return
 			}
 			ctx := context.WithValue(r.Context(), userContextKey{}, token)
-			fmt.Printf("Authenticated user object: %+v\n", token)
+			//fmt.Printf("Authenticated user object: %+v\n", token)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
