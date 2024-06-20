@@ -14,6 +14,56 @@ import (
 	"github.com/ogen-go/ogen/validate"
 )
 
+// Encode encodes GetTasksOKApplicationJSON as json.
+func (s GetTasksOKApplicationJSON) Encode(e *jx.Encoder) {
+	unwrapped := []TaskResponse(s)
+
+	e.ArrStart()
+	for _, elem := range unwrapped {
+		elem.Encode(e)
+	}
+	e.ArrEnd()
+}
+
+// Decode decodes GetTasksOKApplicationJSON from json.
+func (s *GetTasksOKApplicationJSON) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode GetTasksOKApplicationJSON to nil")
+	}
+	var unwrapped []TaskResponse
+	if err := func() error {
+		unwrapped = make([]TaskResponse, 0)
+		if err := d.Arr(func(d *jx.Decoder) error {
+			var elem TaskResponse
+			if err := elem.Decode(d); err != nil {
+				return err
+			}
+			unwrapped = append(unwrapped, elem)
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return errors.Wrap(err, "alias")
+	}
+	*s = GetTasksOKApplicationJSON(unwrapped)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s GetTasksOKApplicationJSON) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *GetTasksOKApplicationJSON) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes time.Time as json.
 func (o OptDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
 	if !o.Set {

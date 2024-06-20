@@ -31,7 +31,7 @@ type Handler interface {
 	// Get Tasks.
 	//
 	// GET /tasks
-	GetTasks(ctx context.Context) ([]TaskResponse, error)
+	GetTasks(ctx context.Context) (GetTasksRes, error)
 	// Healthz implements healthz operation.
 	//
 	// Get health state.

@@ -45,7 +45,7 @@ func (UnimplementedHandler) GetTaskByID(ctx context.Context, params GetTaskByIDP
 // Get Tasks.
 //
 // GET /tasks
-func (UnimplementedHandler) GetTasks(ctx context.Context) (r []TaskResponse, _ error) {
+func (UnimplementedHandler) GetTasks(ctx context.Context) (r GetTasksRes, _ error) {
 	return r, ht.ErrNotImplemented
 }
 

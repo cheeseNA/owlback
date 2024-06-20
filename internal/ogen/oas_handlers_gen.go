@@ -401,7 +401,7 @@ func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.
 		err error
 	)
 
-	var response []TaskResponse
+	var response GetTasksRes
 	if m := s.cfg.Middleware; m != nil {
 		mreq := middleware.Request{
 			Context:          ctx,
@@ -416,7 +416,7 @@ func (s *Server) handleGetTasksRequest(args [0]string, argsEscaped bool, w http.
 		type (
 			Request  = struct{}
 			Params   = struct{}
-			Response = []TaskResponse
+			Response = GetTasksRes
 		)
 		response, err = middleware.HookMiddleware[
 			Request,

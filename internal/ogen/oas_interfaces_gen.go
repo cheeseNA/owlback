@@ -12,3 +12,7 @@ type DeleteTaskByIDRes interface {
 type GetTaskByIDRes interface {
 	getTaskByIDRes()
 }
+
+type GetTasksRes interface {
+	getTasksRes()
+}

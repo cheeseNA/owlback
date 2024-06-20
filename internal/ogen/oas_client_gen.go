@@ -46,7 +46,7 @@ type Invoker interface {
 	// Get Tasks.
 	//
 	// GET /tasks
-	GetTasks(ctx context.Context) ([]TaskResponse, error)
+	GetTasks(ctx context.Context) (GetTasksRes, error)
 	// Healthz invokes healthz operation.
 	//
 	// Get health state.
@@ -369,12 +369,12 @@ func (c *Client) sendGetTaskByID(ctx context.Context, params GetTaskByIDParams) 
 // Get Tasks.
 //
 // GET /tasks
-func (c *Client) GetTasks(ctx context.Context) ([]TaskResponse, error) {
+func (c *Client) GetTasks(ctx context.Context) (GetTasksRes, error) {
 	res, err := c.sendGetTasks(ctx)
 	return res, err
 }
 
-func (c *Client) sendGetTasks(ctx context.Context) (res []TaskResponse, err error) {
+func (c *Client) sendGetTasks(ctx context.Context) (res GetTasksRes, err error) {
 	otelAttrs := []attribute.KeyValue{
 		otelogen.OperationID("get-tasks"),
 		semconv.HTTPMethodKey.String("GET"),

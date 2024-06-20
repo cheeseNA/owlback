@@ -19,10 +19,20 @@ type CrateTaskCreated struct{}
 
 func (*CrateTaskCreated) crateTaskRes() {}
 
+// CrateTaskInternalServerError is response for CrateTask operation.
+type CrateTaskInternalServerError struct{}
+
+func (*CrateTaskInternalServerError) crateTaskRes() {}
+
 // CrateTaskUnauthorized is response for CrateTask operation.
 type CrateTaskUnauthorized struct{}
 
 func (*CrateTaskUnauthorized) crateTaskRes() {}
+
+// DeleteTaskByIDInternalServerError is response for DeleteTaskByID operation.
+type DeleteTaskByIDInternalServerError struct{}
+
+func (*DeleteTaskByIDInternalServerError) deleteTaskByIDRes() {}
 
 // DeleteTaskByIDNotFound is response for DeleteTaskByID operation.
 type DeleteTaskByIDNotFound struct{}
@@ -39,6 +49,11 @@ type DeleteTaskByIDUnauthorized struct{}
 
 func (*DeleteTaskByIDUnauthorized) deleteTaskByIDRes() {}
 
+// GetTaskByIDInternalServerError is response for GetTaskByID operation.
+type GetTaskByIDInternalServerError struct{}
+
+func (*GetTaskByIDInternalServerError) getTaskByIDRes() {}
+
 // GetTaskByIDNotFound is response for GetTaskByID operation.
 type GetTaskByIDNotFound struct{}
 
@@ -48,6 +63,15 @@ func (*GetTaskByIDNotFound) getTaskByIDRes() {}
 type GetTaskByIDUnauthorized struct{}
 
 func (*GetTaskByIDUnauthorized) getTaskByIDRes() {}
+
+// GetTasksInternalServerError is response for GetTasks operation.
+type GetTasksInternalServerError struct{}
+
+func (*GetTasksInternalServerError) getTasksRes() {}
+
+type GetTasksOKApplicationJSON []TaskResponse
+
+func (*GetTasksOKApplicationJSON) getTasksRes() {}
 
 // HealthzOK is response for Healthz operation.
 type HealthzOK struct{}

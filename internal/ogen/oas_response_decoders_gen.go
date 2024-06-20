@@ -3,7 +3,6 @@
 package api
 
 import (
-	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -26,6 +25,9 @@ func decodeCrateTaskResponse(resp *http.Response) (res CrateTaskRes, _ error) {
 	case 401:
 		// Code 401.
 		return &CrateTaskUnauthorized{}, nil
+	case 500:
+		// Code 500.
+		return &CrateTaskInternalServerError{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -41,6 +43,9 @@ func decodeDeleteTaskByIDResponse(resp *http.Response) (res DeleteTaskByIDRes, _
 	case 404:
 		// Code 404.
 		return &DeleteTaskByIDNotFound{}, nil
+	case 500:
+		// Code 500.
+		return &DeleteTaskByIDInternalServerError{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
@@ -97,11 +102,14 @@ func decodeGetTaskByIDResponse(resp *http.Response) (res GetTaskByIDRes, _ error
 	case 404:
 		// Code 404.
 		return &GetTaskByIDNotFound{}, nil
+	case 500:
+		// Code 500.
+		return &GetTaskByIDInternalServerError{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
 
-func decodeGetTasksResponse(resp *http.Response) (res []TaskResponse, _ error) {
+func decodeGetTasksResponse(resp *http.Response) (res GetTasksRes, _ error) {
 	switch resp.StatusCode {
 	case 200:
 		// Code 200.
@@ -117,17 +125,9 @@ func decodeGetTasksResponse(resp *http.Response) (res []TaskResponse, _ error) {
 			}
 			d := jx.DecodeBytes(buf)
 
-			var response []TaskResponse
+			var response GetTasksOKApplicationJSON
 			if err := func() error {
-				response = make([]TaskResponse, 0)
-				if err := d.Arr(func(d *jx.Decoder) error {
-					var elem TaskResponse
-					if err := elem.Decode(d); err != nil {
-						return err
-					}
-					response = append(response, elem)
-					return nil
-				}); err != nil {
+				if err := response.Decode(d); err != nil {
 					return err
 				}
 				if err := d.Skip(); err != io.EOF {
@@ -144,34 +144,20 @@ func decodeGetTasksResponse(resp *http.Response) (res []TaskResponse, _ error) {
 			}
 			// Validate response.
 			if err := func() error {
-				if response == nil {
-					return errors.New("nil is invalid value")
-				}
-				var failures []validate.FieldError
-				for i, elem := range response {
-					if err := func() error {
-						if err := elem.Validate(); err != nil {
-							return err
-						}
-						return nil
-					}(); err != nil {
-						failures = append(failures, validate.FieldError{
-							Name:  fmt.Sprintf("[%d]", i),
-							Error: err,
-						})
-					}
-				}
-				if len(failures) > 0 {
-					return &validate.Error{Fields: failures}
+				if err := response.Validate(); err != nil {
+					return err
 				}
 				return nil
 			}(); err != nil {
 				return res, errors.Wrap(err, "validate")
 			}
-			return response, nil
+			return &response, nil
 		default:
 			return res, validate.InvalidContentType(ct)
 		}
+	case 500:
+		// Code 500.
+		return &GetTasksInternalServerError{}, nil
 	}
 	return res, validate.UnexpectedStatusCode(resp.StatusCode)
 }
