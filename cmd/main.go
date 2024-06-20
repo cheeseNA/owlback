@@ -38,7 +38,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := db.AutoMigrate(&repository.Task{}); err != nil {
+	if err := db.AutoMigrate(&repository.Task{}, &repository.User{}); err != nil {
 		panic(err)
 	}
 
