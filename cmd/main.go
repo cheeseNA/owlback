@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	firebase "firebase.google.com/go/v4"
-	"github.com/cheeseNA/owlback/internal/config"
 	"github.com/cheeseNA/owlback/internal/funccall"
 	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
+	"github.com/cheeseNA/owlback/internal/pkg/config"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"github.com/cheeseNA/owlback/internal/service"
 	"github.com/rs/cors"
