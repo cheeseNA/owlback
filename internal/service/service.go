@@ -6,6 +6,7 @@ import (
 	"github.com/cheeseNA/owlback/internal/funccall"
 	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
+	"github.com/cheeseNA/owlback/internal/pkg/mail"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -16,15 +17,17 @@ import (
 type Service struct {
 	repo        repository.ITaskRepository
 	funcService funccall.IFuncService
+	mailService *mail.MailService
 	logger      *zap.Logger // TODO: replace with context logger interface
 }
 
-const scrapeCooldown = 1 * time.Minute
+const scrapeCooldown = 30 * time.Second
 
-func NewService(repo repository.ITaskRepository, funcService funccall.IFuncService, logger *zap.Logger) *Service {
+func NewService(repo repository.ITaskRepository, funcService funccall.IFuncService, mailService *mail.MailService, logger *zap.Logger) *Service {
 	return &Service{
 		repo:        repo,
 		funcService: funcService,
+		mailService: mailService,
 		logger:      logger,
 	}
 }
@@ -189,11 +192,21 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 		if e != nil {
 			s.logger.Error("Failed to call function", zap.Error(e))
 			err = errors.Join(err, e)
+			_, e := s.mailService.SendMail()
+			if e != nil {
+				s.logger.Error("Failed to send mail", zap.Error(e))
+				err = errors.Join(err, e)
+			}
 			continue
 		}
 		if *res.IsTriggered {
 			s.logger.Info("Triggered", zap.Any("task", task))
-			// TODO: send notification
+			_, e := s.mailService.SendMail()
+			if e != nil {
+				s.logger.Error("Failed to send mail", zap.Error(e))
+				err = errors.Join(err, e)
+				continue
+			}
 		}
 		// TODO: lock & transaction
 		err = errors.Join(err, s.repo.UpdateTask(task, repository.Task{LastContent: res.NewContent, LastCrawledAt: &now}))

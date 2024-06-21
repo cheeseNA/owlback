@@ -7,6 +7,7 @@ import (
 	"github.com/cheeseNA/owlback/internal/middleware"
 	api "github.com/cheeseNA/owlback/internal/ogen"
 	"github.com/cheeseNA/owlback/internal/pkg/config"
+	"github.com/cheeseNA/owlback/internal/pkg/mail"
 	"github.com/cheeseNA/owlback/internal/repository"
 	"github.com/cheeseNA/owlback/internal/service"
 	"github.com/rs/cors"
@@ -47,7 +48,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s := service.NewService(repo, funcService, logger)
+	mailService, err := mail.NewMailService()
+	if err != nil {
+		panic(err)
+	}
+	s := service.NewService(repo, funcService, mailService, logger)
 	srv, err := api.NewServer(s)
 	if err != nil {
 		log.Fatal(err)
