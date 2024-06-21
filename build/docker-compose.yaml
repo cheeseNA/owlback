@@ -8,6 +8,8 @@ services:
       RUNNING_ENVIRONMENT: local
       FUNCTION_URL: http://host.docker.internal:8888
       GOOGLE_APPLICATION_CREDENTIALS: /volume/crawl-owl0-firebase-adminsdk-jt5gt-9744727ed3.json
+    env_file:
+      - .env
     ports:
       - 8080:8080
     depends_on:
