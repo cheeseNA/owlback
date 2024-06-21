@@ -62,6 +62,6 @@ func (r *TaskRepository) GetTasksToCrawl() ([]Task, error) {
 	r.logger.Info("Getting tasks to crawl")
 	var tasks []Task
 	currentTime := time.Now()
-	err := r.db.Where("last_crawled_at + duration_day * interval '1 day' < ?", currentTime).Or("last_crawled_at IS NULL").Find(&tasks).Error
+	err := r.db.Preload("User").Where("last_crawled_at + duration_day * interval '1 day' < ?", currentTime).Or("last_crawled_at IS NULL").Find(&tasks).Error
 	return tasks, err
 }

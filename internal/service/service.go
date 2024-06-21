@@ -173,7 +173,7 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 		return err
 	}
 	for _, task := range tasks {
-		s.logger.Info("Crawling task", zap.Any("task", task))
+		s.logger.Info("Crawling task", zap.Any("ID", task.ID), zap.Any("SiteURL", task.SiteURL), zap.Any("ConditionQuery", task.ConditionQuery))
 		lastContent := ""
 		if task.LastContent != nil {
 			lastContent = *task.LastContent
@@ -192,7 +192,8 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 		if e != nil {
 			s.logger.Error("Failed to call function", zap.Error(e))
 			err = errors.Join(err, e)
-			_, e := s.mailService.SendMail()
+			s.logger.Info("Sending mail to", zap.String("email", task.User.Email))
+			_, e := s.mailService.SendMail("Crawl Owl", task.User.Email, mail.NewFailedToCrawlMail(task.SiteURL), "Failed to crawl your task")
 			if e != nil {
 				s.logger.Error("Failed to send mail", zap.Error(e))
 				err = errors.Join(err, e)
@@ -200,13 +201,16 @@ func (s *Service) PostCronWrpouiqjflsadkmxcvz780923(ctx context.Context) error {
 			continue
 		}
 		if *res.IsTriggered {
-			s.logger.Info("Triggered", zap.Any("task", task))
-			_, e := s.mailService.SendMail()
+			s.logger.Info("Triggered")
+			s.logger.Info("Sending mail to", zap.String("email", task.User.Email))
+			_, e := s.mailService.SendMail("Crawl Owl", task.User.Email, mail.NewTriggeredMail(task.SiteURL, task.ConditionQuery), "Your tracked site has been updated!")
 			if e != nil {
 				s.logger.Error("Failed to send mail", zap.Error(e))
 				err = errors.Join(err, e)
 				continue
 			}
+		} else {
+			s.logger.Info("Not triggered")
 		}
 		// TODO: lock & transaction
 		err = errors.Join(err, s.repo.UpdateTask(task, repository.Task{LastContent: res.NewContent, LastCrawledAt: &now}))

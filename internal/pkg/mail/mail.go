@@ -18,17 +18,17 @@ func NewMailService() (*MailService, error) {
 	return &MailService{client: client}, nil
 }
 
-func (m *MailService) SendMail() (string, error) {
+func (m *MailService) SendMail(fromName, to, html, subject string) (string, error) {
 	params := &resend.SendEmailRequest{
-		From:    "Acme <onboarding@resend.dev>", // TODO: replace with arguments
-		To:      []string{"kurocat2000@gmail.com"},
-		Html:    "<strong>hello world</strong>",
-		Subject: "Hello from Golang",
+		From:    fmt.Sprintf("%s <noreply@mail.cheesena.dev>", fromName),
+		To:      []string{to},
+		Html:    html,
+		Subject: subject,
 	}
 
 	sent, err := m.client.Emails.Send(params)
 	if err != nil {
-		fmt.Println(err.Error()) // use logger
+		fmt.Println(err.Error()) // TODO: use logger
 		return "", err
 	}
 	fmt.Printf("Email sent: %s\n", sent.Id)
