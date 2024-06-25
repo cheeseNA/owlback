@@ -73,6 +73,25 @@ type GetTasksOKApplicationJSON []TaskResponse
 
 func (*GetTasksOKApplicationJSON) getTasksRes() {}
 
+// GetTasksOfUserInternalServerError is response for GetTasksOfUser operation.
+type GetTasksOfUserInternalServerError struct{}
+
+func (*GetTasksOfUserInternalServerError) getTasksOfUserRes() {}
+
+// GetTasksOfUserNotFound is response for GetTasksOfUser operation.
+type GetTasksOfUserNotFound struct{}
+
+func (*GetTasksOfUserNotFound) getTasksOfUserRes() {}
+
+type GetTasksOfUserOKApplicationJSON []TaskResponse
+
+func (*GetTasksOfUserOKApplicationJSON) getTasksOfUserRes() {}
+
+// GetTasksOfUserUnauthorized is response for GetTasksOfUser operation.
+type GetTasksOfUserUnauthorized struct{}
+
+func (*GetTasksOfUserUnauthorized) getTasksOfUserRes() {}
+
 // HealthzOK is response for Healthz operation.
 type HealthzOK struct{}
 

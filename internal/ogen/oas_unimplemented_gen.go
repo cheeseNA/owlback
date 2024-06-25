@@ -49,6 +49,17 @@ func (UnimplementedHandler) GetTasks(ctx context.Context) (r GetTasksRes, _ erro
 	return r, ht.ErrNotImplemented
 }
 
+// GetTasksOfUser implements get-tasks-of-user operation.
+//
+// Get public tasks of {userId}.
+// If {userId} is me it will return tasks of logged in user.
+// If {userId} is the same as logged in user, also return private tasks.
+//
+// GET /users/{userId}/tasks
+func (UnimplementedHandler) GetTasksOfUser(ctx context.Context, params GetTasksOfUserParams) (r GetTasksOfUserRes, _ error) {
+	return r, ht.ErrNotImplemented
+}
+
 // Healthz implements healthz operation.
 //
 // Get health state.

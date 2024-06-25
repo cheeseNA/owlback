@@ -47,6 +47,14 @@ type Invoker interface {
 	//
 	// GET /tasks
 	GetTasks(ctx context.Context) (GetTasksRes, error)
+	// GetTasksOfUser invokes get-tasks-of-user operation.
+	//
+	// Get public tasks of {userId}.
+	// If {userId} is me it will return tasks of logged in user.
+	// If {userId} is the same as logged in user, also return private tasks.
+	//
+	// GET /users/{userId}/tasks
+	GetTasksOfUser(ctx context.Context, params GetTasksOfUserParams) (GetTasksOfUserRes, error)
 	// Healthz invokes healthz operation.
 	//
 	// Get health state.
@@ -429,6 +437,99 @@ func (c *Client) sendGetTasks(ctx context.Context) (res GetTasksRes, err error) 
 
 	stage = "DecodeResponse"
 	result, err := decodeGetTasksResponse(resp)
+	if err != nil {
+		return res, errors.Wrap(err, "decode response")
+	}
+
+	return result, nil
+}
+
+// GetTasksOfUser invokes get-tasks-of-user operation.
+//
+// Get public tasks of {userId}.
+// If {userId} is me it will return tasks of logged in user.
+// If {userId} is the same as logged in user, also return private tasks.
+//
+// GET /users/{userId}/tasks
+func (c *Client) GetTasksOfUser(ctx context.Context, params GetTasksOfUserParams) (GetTasksOfUserRes, error) {
+	res, err := c.sendGetTasksOfUser(ctx, params)
+	return res, err
+}
+
+func (c *Client) sendGetTasksOfUser(ctx context.Context, params GetTasksOfUserParams) (res GetTasksOfUserRes, err error) {
+	otelAttrs := []attribute.KeyValue{
+		otelogen.OperationID("get-tasks-of-user"),
+		semconv.HTTPMethodKey.String("GET"),
+		semconv.HTTPRouteKey.String("/users/{userId}/tasks"),
+	}
+
+	// Run stopwatch.
+	startTime := time.Now()
+	defer func() {
+		// Use floating point division here for higher precision (instead of Millisecond method).
+		elapsedDuration := time.Since(startTime)
+		c.duration.Record(ctx, float64(float64(elapsedDuration)/float64(time.Millisecond)), metric.WithAttributes(otelAttrs...))
+	}()
+
+	// Increment request counter.
+	c.requests.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+
+	// Start a span for this request.
+	ctx, span := c.cfg.Tracer.Start(ctx, "GetTasksOfUser",
+		trace.WithAttributes(otelAttrs...),
+		clientSpanKind,
+	)
+	// Track stage for error reporting.
+	var stage string
+	defer func() {
+		if err != nil {
+			span.RecordError(err)
+			span.SetStatus(codes.Error, stage)
+			c.errors.Add(ctx, 1, metric.WithAttributes(otelAttrs...))
+		}
+		span.End()
+	}()
+
+	stage = "BuildURL"
+	u := uri.Clone(c.requestURL(ctx))
+	var pathParts [3]string
+	pathParts[0] = "/users/"
+	{
+		// Encode "userId" parameter.
+		e := uri.NewPathEncoder(uri.PathEncoderConfig{
+			Param:   "userId",
+			Style:   uri.PathStyleSimple,
+			Explode: false,
+		})
+		if err := func() error {
+			return e.EncodeValue(conv.StringToString(params.UserId))
+		}(); err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		encoded, err := e.Result()
+		if err != nil {
+			return res, errors.Wrap(err, "encode path")
+		}
+		pathParts[1] = encoded
+	}
+	pathParts[2] = "/tasks"
+	uri.AddPathParts(u, pathParts[:]...)
+
+	stage = "EncodeRequest"
+	r, err := ht.NewRequest(ctx, "GET", u)
+	if err != nil {
+		return res, errors.Wrap(err, "create request")
+	}
+
+	stage = "SendRequest"
+	resp, err := c.cfg.Client.Do(r)
+	if err != nil {
+		return res, errors.Wrap(err, "do request")
+	}
+	defer resp.Body.Close()
+
+	stage = "DecodeResponse"
+	result, err := decodeGetTasksOfUserResponse(resp)
 	if err != nil {
 		return res, errors.Wrap(err, "decode response")
 	}

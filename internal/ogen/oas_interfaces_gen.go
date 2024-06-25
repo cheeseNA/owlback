@@ -13,6 +13,10 @@ type GetTaskByIDRes interface {
 	getTaskByIDRes()
 }
 
+type GetTasksOfUserRes interface {
+	getTasksOfUserRes()
+}
+
 type GetTasksRes interface {
 	getTasksRes()
 }

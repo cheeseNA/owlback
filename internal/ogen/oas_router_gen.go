@@ -159,6 +159,53 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				}
 
 				elem = origElem
+			case 'u': // Prefix: "users/"
+				origElem := elem
+				if l := len("users/"); len(elem) >= l && elem[0:l] == "users/" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				// Param: "userId"
+				// Match until "/"
+				idx := strings.IndexByte(elem, '/')
+				if idx < 0 {
+					idx = len(elem)
+				}
+				args[0] = elem[:idx]
+				elem = elem[idx:]
+
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/tasks"
+					origElem := elem
+					if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch r.Method {
+						case "GET":
+							s.handleGetTasksOfUserRequest([1]string{
+								args[0],
+							}, elemIsEscaped, w, r)
+						default:
+							s.notAllowed(w, r, "GET")
+						}
+
+						return
+					}
+
+					elem = origElem
+				}
+
+				elem = origElem
 			}
 
 			elem = origElem
@@ -364,6 +411,55 @@ func (s *Server) FindPath(method string, u *url.URL) (r Route, _ bool) {
 							r.summary = "Get Task by ID"
 							r.operationID = "get-task-by-id"
 							r.pathPattern = "/tasks/{taskId}"
+							r.args = args
+							r.count = 1
+							return r, true
+						default:
+							return
+						}
+					}
+
+					elem = origElem
+				}
+
+				elem = origElem
+			case 'u': // Prefix: "users/"
+				origElem := elem
+				if l := len("users/"); len(elem) >= l && elem[0:l] == "users/" {
+					elem = elem[l:]
+				} else {
+					break
+				}
+
+				// Param: "userId"
+				// Match until "/"
+				idx := strings.IndexByte(elem, '/')
+				if idx < 0 {
+					idx = len(elem)
+				}
+				args[0] = elem[:idx]
+				elem = elem[idx:]
+
+				if len(elem) == 0 {
+					break
+				}
+				switch elem[0] {
+				case '/': // Prefix: "/tasks"
+					origElem := elem
+					if l := len("/tasks"); len(elem) >= l && elem[0:l] == "/tasks" {
+						elem = elem[l:]
+					} else {
+						break
+					}
+
+					if len(elem) == 0 {
+						// Leaf node.
+						switch method {
+						case "GET":
+							r.name = "GetTasksOfUser"
+							r.summary = "Get tasks of user"
+							r.operationID = "get-tasks-of-user"
+							r.pathPattern = "/users/{userId}/tasks"
 							r.args = args
 							r.count = 1
 							return r, true

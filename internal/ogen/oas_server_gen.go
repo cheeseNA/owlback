@@ -32,6 +32,14 @@ type Handler interface {
 	//
 	// GET /tasks
 	GetTasks(ctx context.Context) (GetTasksRes, error)
+	// GetTasksOfUser implements get-tasks-of-user operation.
+	//
+	// Get public tasks of {userId}.
+	// If {userId} is me it will return tasks of logged in user.
+	// If {userId} is the same as logged in user, also return private tasks.
+	//
+	// GET /users/{userId}/tasks
+	GetTasksOfUser(ctx context.Context, params GetTasksOfUserParams) (GetTasksOfUserRes, error)
 	// Healthz implements healthz operation.
 	//
 	// Get health state.

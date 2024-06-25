@@ -64,6 +64,56 @@ func (s *GetTasksOKApplicationJSON) UnmarshalJSON(data []byte) error {
 	return s.Decode(d)
 }
 
+// Encode encodes GetTasksOfUserOKApplicationJSON as json.
+func (s GetTasksOfUserOKApplicationJSON) Encode(e *jx.Encoder) {
+	unwrapped := []TaskResponse(s)
+
+	e.ArrStart()
+	for _, elem := range unwrapped {
+		elem.Encode(e)
+	}
+	e.ArrEnd()
+}
+
+// Decode decodes GetTasksOfUserOKApplicationJSON from json.
+func (s *GetTasksOfUserOKApplicationJSON) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode GetTasksOfUserOKApplicationJSON to nil")
+	}
+	var unwrapped []TaskResponse
+	if err := func() error {
+		unwrapped = make([]TaskResponse, 0)
+		if err := d.Arr(func(d *jx.Decoder) error {
+			var elem TaskResponse
+			if err := elem.Decode(d); err != nil {
+				return err
+			}
+			unwrapped = append(unwrapped, elem)
+			return nil
+		}); err != nil {
+			return err
+		}
+		return nil
+	}(); err != nil {
+		return errors.Wrap(err, "alias")
+	}
+	*s = GetTasksOfUserOKApplicationJSON(unwrapped)
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s GetTasksOfUserOKApplicationJSON) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *GetTasksOfUserOKApplicationJSON) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
 // Encode encodes time.Time as json.
 func (o OptDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
 	if !o.Set {
