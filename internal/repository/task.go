@@ -13,6 +13,7 @@ type ITaskRepository interface {
 	GetTaskByID(uuid.UUID) (Task, error)
 	UpdateTask(Task, Task) error
 	GetTasks() ([]Task, error)
+	GetTaskOfUser(userId string, includePrivate bool) ([]Task, error)
 	GetTasksToCrawl() ([]Task, error)
 }
 
@@ -56,6 +57,22 @@ func (r *TaskRepository) GetTasks() ([]Task, error) {
 	var tasks []Task
 	err := r.db.Where("is_public = ?", true).Find(&tasks).Error
 	return tasks, err
+}
+
+func (r *TaskRepository) GetTaskOfUser(userId string, includePrivate bool) ([]Task, error) {
+	r.logger.Info("Getting tasks of user", zap.Any("userId", userId), zap.Any("includePrivate", includePrivate))
+	var tasks []Task
+	err := r.db.Where("user_id = ?", userId).Find(&tasks).Error
+	if includePrivate {
+		return tasks, err
+	}
+	var publicTasks []Task
+	for _, task := range tasks {
+		if task.IsPublic {
+			publicTasks = append(publicTasks, task)
+		}
+	}
+	return publicTasks, err
 }
 
 func (r *TaskRepository) GetTasksToCrawl() ([]Task, error) {

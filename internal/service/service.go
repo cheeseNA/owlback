@@ -161,6 +161,56 @@ func (s *Service) GetTasks(ctx context.Context) (api.GetTasksRes, error) {
 	return &okRes, nil
 }
 
+func (s *Service) GetTasksOfUser(ctx context.Context, params api.GetTasksOfUserParams) (api.GetTasksOfUserRes, error) {
+	s.logger.Info("Get tasks of user: ", zap.Any("userId", params.UserId))
+	includePrivate := false
+	user := middleware.GetUser(ctx)
+	if params.UserId == "me" {
+		if user == nil {
+			s.logger.Error("Unauthorized")
+			return &api.GetTasksOfUserUnauthorized{}, nil
+		}
+		params.UserId = user.UID
+		includePrivate = true
+	} else if user != nil && user.UID == params.UserId {
+		includePrivate = true
+	}
+	tasks, err := s.repo.GetTaskOfUser(params.UserId, includePrivate)
+	if err != nil {
+		s.logger.Error("Failed to get tasks", zap.Error(err))
+		return &api.GetTasksOfUserInternalServerError{}, err
+	}
+	res := make([]api.TaskResponse, len(tasks))
+	for i, task := range tasks { // TODO: implement model conversion in repository
+		siteUrl, err := url.Parse(task.SiteURL)
+		if err != nil {
+			s.logger.Error("Failed to parse site url", zap.Error(err))
+			return &api.GetTasksOfUserInternalServerError{}, err
+		}
+		var lastCrawledAt api.OptDateTime
+		if task.LastCrawledAt != nil {
+			lastCrawledAt = api.NewOptDateTime(*task.LastCrawledAt)
+		} else {
+			lastCrawledAt.Reset()
+		}
+
+		res[i] = api.TaskResponse{
+			SiteURL:        *siteUrl,
+			ConditionQuery: task.ConditionQuery,
+			DurationDay:    task.DurationDay,
+			IsPublic:       task.IsPublic,
+			ID:             task.ID,
+			CreatedAt:      task.CreatedAt,
+			UserID:         task.UserID,
+			UpdatedAt:      task.UpdatedAt,
+			LastCrawledAt:  lastCrawledAt,
+			IsPaused:       task.IsPaused,
+		}
+	}
+	okRes := api.GetTasksOfUserOKApplicationJSON(res)
+	return &okRes, nil
+}
+
 func (s *Service) Healthz(ctx context.Context) error {
 	s.logger.Info("healthz")
 	return nil
