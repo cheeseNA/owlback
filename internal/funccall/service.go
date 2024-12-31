@@ -43,6 +43,7 @@ func NewFuncService() (*FuncService, error) {
 }
 
 func (s *FuncService) CallFunc(req Request) (res Response, err error) {
+	req.GeminiKey = s.cfg.GeminiKey // hotfix
 	jsonReq, err := json.Marshal(req)
 	if err != nil {
 		return Response{}, err

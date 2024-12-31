@@ -7,6 +7,7 @@ import (
 
 type config struct {
 	FunctionURL string `split_words:"true" validate:"required"`
+	GeminiKey   string `split_words:"true" validate:"required"`
 }
 
 func loadConfig() (*config, error) {
